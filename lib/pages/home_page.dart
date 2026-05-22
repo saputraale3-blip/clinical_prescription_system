@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -10,268 +12,462 @@ import 'pediatric_dose_page.dart';
 import 'prescription_page.dart';
 
 class HomePage extends StatelessWidget {
-
-  const HomePage({
-    super.key,
-  });
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider =
+        Provider.of<ThemeProvider>(context);
+
+    final isDark = themeProvider.isDarkMode;
 
     final width =
-        MediaQuery.of(context)
-            .size
-            .width;
+        MediaQuery.of(context).size.width;
 
-    int crossAxisCount = 2;
+    int crossAxisCount = 1;
 
     if (width > 1200) {
-
-      crossAxisCount = 4;
-    }
-
-    else if (width > 800) {
-
       crossAxisCount = 3;
+    } else if (width > 700) {
+      crossAxisCount = 2;
     }
 
     return Scaffold(
+      backgroundColor: isDark
+          ? const Color(0xff071227)
+          : const Color(0xffF4F7FB),
 
-      appBar: AppBar(
-
-        title: const Text(
-          'Clinical Prescription',
-        ),
-
-        actions: [
-
-          // THEME BUTTON
-
-          IconButton(
-
-            onPressed: () {
-
-              Provider.of<ThemeProvider>(
-
-                context,
-
-                listen: false,
-              ).toggleTheme();
-            },
-
-            icon: const Icon(
-              Icons.dark_mode_rounded,
-            ),
-          ),
-
-          // LOGOUT
-
-          IconButton(
-
-            onPressed: () async {
-
-              await AuthService.logout();
-
-              if (!context.mounted) {
-                return;
-              }
-
-              Navigator.pushAndRemoveUntil(
-
-                context,
-
-                MaterialPageRoute(
-
-                  builder:
-                      (_) =>
-                          const LoginPage(),
-                ),
-
-                (route) => false,
-              );
-            },
-
-            icon: const Icon(
-              Icons.logout_rounded,
-            ),
-          ),
-        ],
-      ),
-
-      body: Padding(
-
-        padding:
-            const EdgeInsets.all(20),
-
-        child: Column(
-
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
-
+      body: SafeArea(
+        child: Row(
           children: [
 
-            // HEADER
+            // =========================
+            // SIDEBAR
+            // =========================
 
-            Container(
-
-              width: double.infinity,
-
-              padding:
-                  const EdgeInsets.all(
-                28,
-              ),
-
-              decoration:
-                  BoxDecoration(
-
-                gradient:
-                    const LinearGradient(
-
-                  colors: [
-
-                    Color(0xFF14B8A6),
-
-                    Color(0xFF0F766E),
+            if (width > 850)
+              Container(
+                width: 280,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xff16243d)
+                      : Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 20,
+                    ),
                   ],
                 ),
 
-                borderRadius:
-                    BorderRadius.circular(
-                  30,
+                child: Column(
+                  children: [
+
+                    const SizedBox(height: 40),
+
+                    Container(
+                      padding: const EdgeInsets.all(18),
+
+                      decoration: BoxDecoration(
+                        color: Colors.cyanAccent.withOpacity(0.15),
+                        borderRadius:
+                            BorderRadius.circular(25),
+                      ),
+
+                      child: const Icon(
+                        Icons.local_hospital_rounded,
+                        color: Colors.cyanAccent,
+                        size: 55,
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    Text(
+                      'Clinical System',
+                      style: TextStyle(
+                        color: isDark
+                            ? Colors.white
+                            : Colors.black87,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 50),
+
+                    buildMenuTile(
+                      context,
+                      icon: Icons.home_rounded,
+                      title: 'Home',
+                      isDark: isDark,
+                    ),
+
+                    buildMenuTile(
+                      context,
+                      icon:
+                          Icons.medication_rounded,
+                      title: 'Drug Database',
+                      isDark: isDark,
+                    ),
+
+                    buildMenuTile(
+                      context,
+                      icon:
+                          Icons.receipt_long_rounded,
+                      title: 'Prescription',
+                      isDark: isDark,
+                    ),
+
+                    buildMenuTile(
+                      context,
+                      icon:
+                          Icons.child_care_rounded,
+                      title: 'Pediatric Dose',
+                      isDark: isDark,
+                    ),
+
+                    const Spacer(),
+
+                    ListTile(
+                      leading: Icon(
+                        Icons.dark_mode_rounded,
+                        color: isDark
+                            ? Colors.white
+                            : Colors.black87,
+                      ),
+
+                      title: Text(
+                        'Theme',
+                        style: TextStyle(
+                          color: isDark
+                              ? Colors.white
+                              : Colors.black87,
+                        ),
+                      ),
+
+                      trailing: Switch(
+                        value: isDark,
+                        onChanged: (value) {
+                          themeProvider.toggleTheme();
+                        },
+                      ),
+                    ),
+
+                    ListTile(
+                      leading: const Icon(
+                        Icons.logout_rounded,
+                        color: Colors.redAccent,
+                      ),
+
+                      title: const Text(
+                        'Logout',
+                        style: TextStyle(
+                          color: Colors.redAccent,
+                        ),
+                      ),
+
+                      onTap: () async {
+                        await AuthService.logout();
+
+                        if (!context.mounted) return;
+
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const LoginPage(),
+                          ),
+                          (route) => false,
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 25),
+                  ],
                 ),
               ),
 
-              child: const Column(
+            // =========================
+            // CONTENT
+            // =========================
 
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+            Expanded(
+              child: SingleChildScrollView(
+                padding:
+                    const EdgeInsets.all(30),
 
-                children: [
+                child: Column(
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
 
-                  Text(
+                  children: [
 
-                    'Welcome Back 👋',
+                    // =========================
+                    // HEADER
+                    // =========================
 
-                    style: TextStyle(
+                    ClipRRect(
+                      borderRadius:
+                          BorderRadius.circular(35),
 
-                      color:
-                          Colors.white,
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(
+                          sigmaX: 12,
+                          sigmaY: 12,
+                        ),
 
-                      fontSize: 30,
+                        child: Container(
+                          width: double.infinity,
 
-                      fontWeight:
-                          FontWeight.bold,
+                          padding:
+                              const EdgeInsets.all(
+                            35,
+                          ),
+
+                          decoration: BoxDecoration(
+                            gradient:
+                                LinearGradient(
+                              colors: [
+                                Colors.cyanAccent
+                                    .withOpacity(0.8),
+                                Colors.blueAccent
+                                    .withOpacity(0.7),
+                              ],
+                            ),
+
+                            borderRadius:
+                                BorderRadius.circular(
+                              35,
+                            ),
+                          ),
+
+                          child: Column(
+                            crossAxisAlignment:
+                                CrossAxisAlignment
+                                    .start,
+
+                            children: [
+
+                              const Text(
+                                'Welcome Back 👋',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 38,
+                                  fontWeight:
+                                      FontWeight.bold,
+                                ),
+                              ),
+
+                              const SizedBox(
+                                  height: 10),
+
+                              Text(
+                                'Professional clinical prescription platform.',
+
+                                style: TextStyle(
+                                  color: Colors.white
+                                      .withOpacity(0.95),
+
+                                  fontSize: 18,
+                                ),
+                              ),
+
+                              const SizedBox(
+                                  height: 25),
+
+                              Row(
+                                children: [
+
+                                  buildStatCard(
+                                    title:
+                                        'Prescriptions',
+                                    value: '560',
+                                  ),
+
+                                  const SizedBox(
+                                      width: 18),
+
+                                  buildStatCard(
+                                    title:
+                                        'Drugs',
+                                    value: '128',
+                                  ),
+
+                                  const SizedBox(
+                                      width: 18),
+
+                                  buildStatCard(
+                                    title:
+                                        'Users',
+                                    value: '42',
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
 
-                  SizedBox(height: 10),
+                    const SizedBox(height: 35),
 
-                  Text(
+                    Text(
+                      'Quick Access',
+                      style: TextStyle(
+                        color: isDark
+                            ? Colors.white
+                            : Colors.black87,
 
-                    'Access prescriptions and clinical tools easily.',
-
-                    style: TextStyle(
-
-                      color:
-                          Colors.white,
-
-                      fontSize: 15,
+                        fontSize: 30,
+                        fontWeight:
+                            FontWeight.bold,
+                      ),
                     ),
-                  ),
-                ],
+
+                    const SizedBox(height: 25),
+
+                    GridView.count(
+                      shrinkWrap: true,
+
+                      physics:
+                          const NeverScrollableScrollPhysics(),
+
+                      crossAxisCount:
+                          crossAxisCount,
+
+                      crossAxisSpacing: 25,
+
+                      mainAxisSpacing: 25,
+
+                      childAspectRatio: 1.1,
+
+                      children: const [
+
+                        ModernCard(
+                          title:
+                              'Drug Database',
+                          subtitle:
+                              'Browse medicines',
+                          icon:
+                              Icons.medication_rounded,
+                          color: Colors.cyan,
+                          page:
+                              DrugDatabasePage(),
+                        ),
+
+                        ModernCard(
+                          title:
+                              'Pediatric Dose',
+                          subtitle:
+                              'Dose calculator',
+                          icon:
+                              Icons.child_care_rounded,
+                          color: Colors.orange,
+                          page:
+                              PediatricDosePage(),
+                        ),
+
+                        ModernCard(
+                          title:
+                              'Prescription',
+                          subtitle:
+                              'Create prescriptions',
+                          icon:
+                              Icons.receipt_long_rounded,
+                          color: Colors.green,
+                          page:
+                              PrescriptionPage(),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
 
-            const SizedBox(height: 30),
+  Widget buildMenuTile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required bool isDark,
+  }) {
+    return Padding(
+      padding:
+          const EdgeInsets.symmetric(
+        horizontal: 15,
+        vertical: 6,
+      ),
 
-            const Text(
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius:
+              BorderRadius.circular(18),
+        ),
 
-              'Quick Access',
+        child: ListTile(
+          leading: Icon(
+            icon,
+            color: Colors.cyanAccent,
+          ),
 
-              style: TextStyle(
+          title: Text(
+            title,
+            style: TextStyle(
+              color: isDark
+                  ? Colors.white
+                  : Colors.black87,
+              fontSize: 17,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
-                fontSize: 24,
+  Widget buildStatCard({
+    required String title,
+    required String value,
+  }) {
+    return Expanded(
+      child: Container(
+        padding:
+            const EdgeInsets.symmetric(
+          vertical: 18,
+        ),
 
+        decoration: BoxDecoration(
+          color:
+              Colors.white.withOpacity(0.18),
+
+          borderRadius:
+              BorderRadius.circular(20),
+        ),
+
+        child: Column(
+          children: [
+
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 28,
                 fontWeight:
                     FontWeight.bold,
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 6),
 
-            Expanded(
-
-              child:
-                  GridView.count(
-
-                crossAxisCount:
-                    crossAxisCount,
-
-                crossAxisSpacing:
-                    20,
-
-                mainAxisSpacing:
-                    20,
-
-                childAspectRatio:
-                    1.05,
-
-                children: const [
-
-                  AnimatedUserCard(
-
-                    title:
-                        'Drug Database',
-
-                    subtitle:
-                        'Browse medicine database',
-
-                    icon:
-                        Icons.medication_rounded,
-
-                    color:
-                        Colors.cyan,
-
-                    page:
-                        DrugDatabasePage(),
-                  ),
-
-                  AnimatedUserCard(
-
-                    title:
-                        'Pediatric Dose',
-
-                    subtitle:
-                        'Child dosage calculator',
-
-                    icon:
-                        Icons.child_care_rounded,
-
-                    color:
-                        Colors.orange,
-
-                    page:
-                        PediatricDosePage(),
-                  ),
-
-                  AnimatedUserCard(
-
-                    title:
-                        'Prescription',
-
-                    subtitle:
-                        'Create prescriptions easily',
-
-                    icon:
-                        Icons.receipt_long_rounded,
-
-                    color:
-                        Colors.green,
-
-                    page:
-                        PrescriptionPage(),
-                  ),
-                ],
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white70,
               ),
             ),
           ],
@@ -281,46 +477,29 @@ class HomePage extends StatelessWidget {
   }
 }
 
-// =====================================
-// ANIMATED USER CARD
-// =====================================
-
-class AnimatedUserCard
-    extends StatefulWidget {
-
+class ModernCard extends StatefulWidget {
   final String title;
-
   final String subtitle;
-
   final IconData icon;
-
   final Color color;
-
   final Widget page;
 
-  const AnimatedUserCard({
-
+  const ModernCard({
     super.key,
-
     required this.title,
-
     required this.subtitle,
-
     required this.icon,
-
     required this.color,
-
     required this.page,
   });
 
   @override
-  State<AnimatedUserCard>
-      createState() =>
-          _AnimatedUserCardState();
+  State<ModernCard> createState() =>
+      _ModernCardState();
 }
 
-class _AnimatedUserCardState
-    extends State<AnimatedUserCard> {
+class _ModernCardState
+    extends State<ModernCard> {
 
   bool isHover = false;
 
@@ -330,14 +509,12 @@ class _AnimatedUserCardState
     return MouseRegion(
 
       onEnter: (_) {
-
         setState(() {
           isHover = true;
         });
       },
 
       onExit: (_) {
-
         setState(() {
           isHover = false;
         });
@@ -348,100 +525,55 @@ class _AnimatedUserCardState
         onTap: () {
 
           Navigator.push(
-
             context,
-
             MaterialPageRoute(
-
-              builder:
-                  (_) =>
-                      widget.page,
+              builder: (_) => widget.page,
             ),
           );
         },
 
-        child:
-            AnimatedContainer(
+        child: AnimatedContainer(
 
           duration:
               const Duration(
             milliseconds: 250,
           ),
 
-          curve:
-              Curves.easeInOut,
-
           transform:
               Matrix4.identity()
 
-                ..scale(
-                  isHover
-                      ? 1.03
-                      : 1.0,
-                )
-
                 ..translate(
                   0.0,
-                  isHover
-                      ? -8.0
-                      : 0.0,
+                  isHover ? -8.0 : 0.0,
                 ),
 
-          decoration:
-              BoxDecoration(
+          decoration: BoxDecoration(
 
             gradient:
                 LinearGradient(
 
               colors: [
 
-                widget.color
-                    .withOpacity(
-                  0.9,
-                ),
+                widget.color,
 
                 widget.color
-                    .withOpacity(
-                  0.6,
-                ),
+                    .withOpacity(0.7),
               ],
-
-              begin:
-                  Alignment.topLeft,
-
-              end:
-                  Alignment.bottomRight,
             ),
 
             borderRadius:
-                BorderRadius.circular(
-              30,
-            ),
+                BorderRadius.circular(35),
 
             boxShadow: [
 
               BoxShadow(
+                color: widget.color
+                    .withOpacity(0.35),
 
-                color:
-                    widget.color
-                        .withOpacity(
-                  isHover
-                      ? 0.5
-                      : 0.25,
-                ),
-
-                blurRadius:
-                    isHover
-                        ? 30
-                        : 14,
+                blurRadius: 25,
 
                 offset:
-                    Offset(
-                  0,
-                  isHover
-                      ? 14
-                      : 8,
-                ),
+                    const Offset(0, 14),
               ),
             ],
           ),
@@ -449,9 +581,7 @@ class _AnimatedUserCardState
           child: Padding(
 
             padding:
-                const EdgeInsets.all(
-              22,
-            ),
+                const EdgeInsets.all(28),
 
             child: Column(
 
@@ -460,28 +590,18 @@ class _AnimatedUserCardState
 
               children: [
 
-                AnimatedContainer(
-
-                  duration:
-                      const Duration(
-                    milliseconds: 250,
-                  ),
+                Container(
 
                   padding:
                       const EdgeInsets.all(
-                    14,
+                    16,
                   ),
 
-                  decoration:
-                      BoxDecoration(
+                  decoration: BoxDecoration(
 
                     color:
                         Colors.white
-                            .withOpacity(
-                      isHover
-                          ? 0.28
-                          : 0.18,
-                    ),
+                            .withOpacity(0.2),
 
                     borderRadius:
                         BorderRadius.circular(
@@ -490,30 +610,19 @@ class _AnimatedUserCardState
                   ),
 
                   child: Icon(
-
                     widget.icon,
-
-                    color:
-                        Colors.white,
-
-                    size: 34,
+                    color: Colors.white,
+                    size: 36,
                   ),
                 ),
 
                 const Spacer(),
 
                 Text(
-
                   widget.title,
-
-                  style:
-                      const TextStyle(
-
-                    color:
-                        Colors.white,
-
-                    fontSize: 22,
-
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
                     fontWeight:
                         FontWeight.bold,
                   ),
@@ -522,19 +631,11 @@ class _AnimatedUserCardState
                 const SizedBox(height: 10),
 
                 Text(
-
                   widget.subtitle,
-
-                  style:
-                      TextStyle(
-
-                    color:
-                        Colors.white
-                            .withOpacity(
-                      0.92,
-                    ),
-
-                    fontSize: 14,
+                  style: TextStyle(
+                    color: Colors.white
+                        .withOpacity(0.9),
+                    fontSize: 15,
                   ),
                 ),
               ],

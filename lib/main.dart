@@ -8,67 +8,57 @@ import 'theme/app_theme.dart';
 import 'theme/theme_provider.dart';
 
 Future<void> main() async {
-
-  WidgetsFlutterBinding
-      .ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(
-
-    url:
-        'https://ktinojqknhqcrullkoqq.supabase.co',
-
+    url: 'https://ktinojqknhqcrullkoqq.supabase.co',
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0aW5vanFrbmhxY3J1bGxrb3FxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNzg5OTUsImV4cCI6MjA5NDg1NDk5NX0.iZ_ja6wjymF1cFbk--hqZaxkq0zFzcZOjW1g1wftdOE',
   );
 
   runApp(
-
     ChangeNotifierProvider(
-
-      create:
-          (_) =>
-              ThemeProvider(),
-
-      child:
-          const MyApp(),
+      create: (_) => ThemeProvider(),
+      child: const MyApp(),
     ),
   );
 }
 
-class MyApp
-    extends StatelessWidget {
-
-  const MyApp({
-    super.key,
-  });
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-
     final themeProvider =
-        Provider.of<ThemeProvider>(
-      context,
-    );
+        Provider.of<ThemeProvider>(context);
 
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
 
-      debugShowCheckedModeBanner:
-          false,
+      title: 'Clinical Prescription',
 
-      title:
-          'Clinical Prescription',
+      theme: AppTheme.lightTheme,
 
-      theme:
-          AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
 
-      darkTheme:
-          AppTheme.darkTheme,
+      themeMode: themeProvider.themeMode,
 
-      themeMode:
-          themeProvider.themeMode,
+      builder: (context, child) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            return MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: const TextScaler.linear(
+                  1.0,
+                ),
+              ),
+              child: child!,
+            );
+          },
+        );
+      },
 
-      home:
-          const LoginPage(),
+      home: const LoginPage(),
     );
   }
 }
