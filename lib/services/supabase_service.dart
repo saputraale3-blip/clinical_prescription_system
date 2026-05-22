@@ -14,11 +14,8 @@ class SupabaseService {
 
     final response =
         await supabase
-
             .from('drugs')
-
             .select()
-
             .order(
               'name',
               ascending: true,
@@ -37,15 +34,12 @@ class SupabaseService {
 
     final response =
         await supabase
-
             .from('drugs')
-
             .select()
-
-            .or(
-              'drug_type.eq.pediatric,drug_type.eq.both',
+            .eq(
+              'drug_type',
+              'pediatric',
             )
-
             .order(
               'name',
               ascending: true,
@@ -78,25 +72,56 @@ class SupabaseService {
 
   }) async {
 
-    await supabase
-        .from('drugs')
-        .insert({
+    try {
 
-      'name': name,
-      'generic_name': genericName,
-      'category': category,
-      'dosage_form': dosageForm,
-      'dose': dose,
-      'frequency': frequency,
-      'prescription': prescription,
-      'note': note,
-      'drug_type': drugType,
+      await supabase
+          .from('drugs')
+          .insert({
 
-      'mg_per_kg_min': mgPerKgMin,
-      'mg_per_kg_max': mgPerKgMax,
-      'syrup_mg': syrupMg,
-      'syrup_ml': syrupMl,
-    });
+        'name': name,
+
+        'generic_name':
+            genericName,
+
+        'category': category,
+
+        'dosage_form':
+            dosageForm,
+
+        'dose': dose,
+
+        'frequency':
+            frequency,
+
+        'prescription':
+            prescription,
+
+        'note': note,
+
+        'drug_type':
+            drugType,
+
+        'mg_per_kg_min':
+            mgPerKgMin,
+
+        'mg_per_kg_max':
+            mgPerKgMax,
+
+        'syrup_mg':
+            syrupMg,
+
+        'syrup_ml':
+            syrupMl,
+      });
+
+    } catch (e) {
+
+      print(
+        'ADD DRUG ERROR: $e',
+      );
+
+      rethrow;
+    }
   }
 
   // =========================
@@ -124,41 +149,69 @@ class SupabaseService {
 
   }) async {
 
-    await supabase
-        .from('drugs')
-        .update({
+    try {
 
-      'name': name,
-      'generic_name': genericName,
-      'category': category,
-      'dosage_form': dosageForm,
-      'dose': dose,
-      'frequency': frequency,
-      'prescription': prescription,
-      'note': note,
-      'drug_type': drugType,
+      await supabase
+          .from('drugs')
+          .update({
 
-      'mg_per_kg_min': mgPerKgMin,
-      'mg_per_kg_max': mgPerKgMax,
-      'syrup_mg': syrupMg,
-      'syrup_ml': syrupMl,
+        'name': name,
 
-    }).eq('id', id);
+        'generic_name':
+            genericName,
+
+        'category': category,
+
+        'dosage_form':
+            dosageForm,
+
+        'dose': dose,
+
+        'frequency':
+            frequency,
+
+        'prescription':
+            prescription,
+
+        'note': note,
+
+        'drug_type':
+            drugType,
+
+        'mg_per_kg_min':
+            mgPerKgMin,
+
+        'mg_per_kg_max':
+            mgPerKgMax,
+
+        'syrup_mg':
+            syrupMg,
+
+        'syrup_ml':
+            syrupMl,
+
+      }).eq('id', id);
+
+    } catch (e) {
+
+      print(
+        'UPDATE DRUG ERROR: $e',
+      );
+
+      rethrow;
+    }
   }
 
   // =========================
   // DELETE DRUG
   // =========================
 
-  static Future<void> deleteDrug(
-      int id) async {
+  static Future<void>
+      deleteDrug(int id) async {
 
     await supabase
-
         .from('drugs')
-
         .delete()
-
         .eq('id', id);
   }
 
@@ -166,29 +219,24 @@ class SupabaseService {
   // GET USERS
   // =========================
 
-  static Future<
-      List<Map<String, dynamic>>>
+  static Future<List<Map<String, dynamic>>>
       getUsers() async {
 
     final response =
         await supabase
-
             .from('profiles')
-
             .select()
-
             .order(
               'username',
               ascending: true,
             );
 
-    return List<
-        Map<String, dynamic>>
+    return List<Map<String, dynamic>>
         .from(response);
   }
 
   // =========================
-  // UPDATE ROLE
+  // UPDATE USER ROLE
   // =========================
 
   static Future<void>
@@ -200,9 +248,7 @@ class SupabaseService {
   }) async {
 
     await supabase
-
         .from('profiles')
-
         .update({
 
       'is_admin': isAdmin,
@@ -223,9 +269,7 @@ class SupabaseService {
   }) async {
 
     await supabase
-
         .from('profiles')
-
         .update({
 
       'approved': approved,
@@ -245,11 +289,8 @@ class SupabaseService {
   }) async {
 
     await supabase
-
         .from('profiles')
-
         .delete()
-
         .eq('id', userId);
   }
 }

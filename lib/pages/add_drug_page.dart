@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-
 import '../services/supabase_service.dart';
 
 class AddDrugPage extends StatefulWidget {
-
   const AddDrugPage({super.key});
 
   @override
@@ -32,10 +30,10 @@ class _AddDrugPageState
   final noteController =
       TextEditingController();
 
-  final mgPerKgMinController =
+  final mgKgMinController =
       TextEditingController();
 
-  final mgPerKgMaxController =
+  final mgKgMaxController =
       TextEditingController();
 
   final syrupMgController =
@@ -44,32 +42,107 @@ class _AddDrugPageState
   final syrupMlController =
       TextEditingController();
 
+  final categories = [
+
+    'Analgesic',
+
+    'Antibiotic',
+
+    'Antifungal',
+
+    'Antiviral',
+
+    'Antihistamine',
+  ];
+
+  final dosageForms = [
+
+    'tablet',
+
+    'syrup',
+
+    'capsule',
+
+    'drops',
+
+    'suspension',
+  ];
+
+  final databaseTypes = [
+
+    'drug database',
+
+    'pediatric',
+  ];
+
   String selectedCategory =
       'Analgesic';
 
   String selectedDosageForm =
-      'Tablet';
+      'tablet';
 
-  String selectedDatabase =
-      'adult';
+  String selectedDatabaseType =
+      'drug database';
 
   bool isLoading = false;
 
-  Future<void> addDrug() async {
+  bool get isPediatric {
 
-    setState(() {
-      isLoading = true;
-    });
+    return selectedDatabaseType ==
+        'pediatric';
+  }
+
+  bool get isSyrup {
+
+    return selectedDosageForm ==
+            'syrup' ||
+
+        selectedDosageForm ==
+            'drops' ||
+
+        selectedDosageForm ==
+            'suspension';
+  }
+
+  InputDecoration inputStyle(
+      String label) {
+
+    return InputDecoration(
+
+      labelText: label,
+
+      border:
+          OutlineInputBorder(
+
+        borderRadius:
+            BorderRadius.circular(
+          14,
+        ),
+      ),
+    );
+  }
+
+  Future<void> saveDrug()
+      async {
 
     try {
 
-      await SupabaseService.addDrug(
+      setState(() {
+
+        isLoading = true;
+      });
+
+      await SupabaseService
+          .addDrug(
 
         name:
-            nameController.text,
+            nameController.text
+                .trim(),
 
         genericName:
-            genericNameController.text,
+            genericNameController
+                .text
+                .trim(),
 
         category:
             selectedCategory,
@@ -78,52 +151,78 @@ class _AddDrugPageState
             selectedDosageForm,
 
         dose:
-            doseController.text,
+            doseController.text
+                .trim(),
 
         frequency:
-            frequencyController.text,
+            frequencyController
+                .text
+                .trim(),
 
         prescription:
-            prescriptionController.text,
+            prescriptionController
+                .text
+                .trim(),
 
         note:
-            noteController.text,
+            noteController.text
+                .trim(),
 
         drugType:
-            selectedDatabase,
+            selectedDatabaseType,
 
         mgPerKgMin:
             double.tryParse(
-              mgPerKgMinController.text,
-            ) ?? 0,
+                  mgKgMinController
+                      .text,
+                ) ??
+                0,
 
         mgPerKgMax:
             double.tryParse(
-              mgPerKgMaxController.text,
-            ) ?? 0,
+                  mgKgMaxController
+                      .text,
+                ) ??
+                0,
 
         syrupMg:
             double.tryParse(
-              syrupMgController.text,
-            ) ?? 0,
+                  syrupMgController
+                      .text,
+                ) ??
+                0,
 
         syrupMl:
             double.tryParse(
-              syrupMlController.text,
-            ) ?? 0,
+                  syrupMlController
+                      .text,
+                ) ??
+                0,
       );
 
       if (!mounted) return;
 
-      Navigator.pop(context);
-    }
+      ScaffoldMessenger.of(
+              context)
+          .showSnackBar(
 
-    catch (e) {
+        const SnackBar(
 
-      ScaffoldMessenger.of(context)
+          content:
+              Text(
+            'Drug added successfully',
+          ),
+        ),
+      );
+
+    } catch (e) {
+
+      ScaffoldMessenger.of(
+              context)
           .showSnackBar(
 
         SnackBar(
+
           content:
               Text(e.toString()),
         ),
@@ -131,159 +230,351 @@ class _AddDrugPageState
     }
 
     setState(() {
+
       isLoading = false;
     });
   }
 
-  Widget buildInput({
-
-    required TextEditingController
-        controller,
-
-    required String label,
-
-  }) {
-
-    return Padding(
-
-      padding:
-          const EdgeInsets.only(
-        bottom: 15,
-      ),
-
-      child: TextField(
-
-        controller: controller,
-
-        style: const TextStyle(
-          color: Colors.white,
-        ),
-
-        decoration: InputDecoration(
-
-          labelText: label,
-
-          labelStyle:
-              const TextStyle(
-            color: Colors.white70,
-          ),
-
-          filled: true,
-
-          fillColor:
-              const Color(0xFF1E1E1E),
-
-          border:
-              OutlineInputBorder(
-
-            borderRadius:
-                BorderRadius.circular(
-              14,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+      BuildContext context) {
 
     return Scaffold(
-
-      backgroundColor:
-          const Color(0xFF121212),
 
       appBar: AppBar(
 
         title:
-            const Text('Add Drug'),
-
-        backgroundColor:
-            Colors.black,
+            const Text(
+          'Add Drug',
+        ),
       ),
 
-      body: SingleChildScrollView(
+      body:
+          SingleChildScrollView(
 
         padding:
-            const EdgeInsets.all(20),
+            const EdgeInsets.all(
+          20,
+        ),
 
         child: Column(
 
           children: [
 
-            buildInput(
+            TextField(
+
               controller:
                   nameController,
-              label: 'Drug Name',
+
+              decoration:
+                  inputStyle(
+                'Drug Name',
+              ),
             ),
 
-            buildInput(
+            const SizedBox(
+                height: 20),
+
+            TextField(
+
               controller:
                   genericNameController,
-              label: 'Generic Name',
+
+              decoration:
+                  inputStyle(
+                'Generic Name',
+              ),
             ),
 
-            buildInput(
+            const SizedBox(
+                height: 20),
+
+            DropdownButtonFormField<
+                String>(
+
+              value:
+                  selectedCategory,
+
+              decoration:
+                  inputStyle(
+                'Category',
+              ),
+
+              items:
+                  categories.map(
+                      (e) {
+
+                return DropdownMenuItem(
+
+                  value: e,
+
+                  child:
+                      Text(e),
+                );
+              }).toList(),
+
+              onChanged:
+                  (value) {
+
+                setState(() {
+
+                  selectedCategory =
+                      value!;
+                });
+              },
+            ),
+
+            const SizedBox(
+                height: 20),
+
+            DropdownButtonFormField<
+                String>(
+
+              value:
+                  selectedDosageForm,
+
+              decoration:
+                  inputStyle(
+                'Dosage Form',
+              ),
+
+              items:
+                  dosageForms.map(
+                      (e) {
+
+                return DropdownMenuItem(
+
+                  value: e,
+
+                  child:
+                      Text(e),
+                );
+              }).toList(),
+
+              onChanged:
+                  (value) {
+
+                setState(() {
+
+                  selectedDosageForm =
+                      value!;
+                });
+              },
+            ),
+
+            const SizedBox(
+                height: 20),
+
+            DropdownButtonFormField<
+                String>(
+
+              value:
+                  selectedDatabaseType,
+
+              decoration:
+                  inputStyle(
+                'Database Type',
+              ),
+
+              items:
+                  databaseTypes.map(
+                      (e) {
+
+                return DropdownMenuItem(
+
+                  value: e,
+
+                  child:
+                      Text(e),
+                );
+              }).toList(),
+
+              onChanged:
+                  (value) {
+
+                setState(() {
+
+                  selectedDatabaseType =
+                      value!;
+                });
+              },
+            ),
+
+            const SizedBox(
+                height: 20),
+
+            TextField(
+
               controller:
                   doseController,
-              label: 'Dose',
+
+              decoration:
+                  inputStyle(
+                'Dose',
+              ),
             ),
 
-            buildInput(
+            const SizedBox(
+                height: 20),
+
+            TextField(
+
               controller:
                   frequencyController,
-              label: 'Frequency',
+
+              decoration:
+                  inputStyle(
+                'Frequency',
+              ),
             ),
 
-            buildInput(
+            const SizedBox(
+                height: 20),
+
+            if (isPediatric)
+
+              Column(
+
+                children: [
+
+                  TextField(
+
+                    controller:
+                        mgKgMinController,
+
+                    keyboardType:
+                        TextInputType
+                            .number,
+
+                    decoration:
+                        inputStyle(
+                      'mg/kg Min',
+                    ),
+                  ),
+
+                  const SizedBox(
+                      height: 20),
+
+                  TextField(
+
+                    controller:
+                        mgKgMaxController,
+
+                    keyboardType:
+                        TextInputType
+                            .number,
+
+                    decoration:
+                        inputStyle(
+                      'mg/kg Max',
+                    ),
+                  ),
+
+                  const SizedBox(
+                      height: 20),
+                ],
+              ),
+
+            if (isPediatric &&
+                isSyrup)
+
+              Column(
+
+                children: [
+
+                  TextField(
+
+                    controller:
+                        syrupMgController,
+
+                    keyboardType:
+                        TextInputType
+                            .number,
+
+                    decoration:
+                        inputStyle(
+                      'Syrup mg',
+                    ),
+                  ),
+
+                  const SizedBox(
+                      height: 20),
+
+                  TextField(
+
+                    controller:
+                        syrupMlController,
+
+                    keyboardType:
+                        TextInputType
+                            .number,
+
+                    decoration:
+                        inputStyle(
+                      'Syrup ml',
+                    ),
+                  ),
+
+                  const SizedBox(
+                      height: 20),
+                ],
+              ),
+
+            TextField(
+
               controller:
                   prescriptionController,
-              label: 'Prescription',
+
+              maxLines: 8,
+
+              decoration:
+                  inputStyle(
+                'Prescription',
+              ),
             ),
 
-            buildInput(
+            const SizedBox(
+                height: 20),
+
+            TextField(
+
               controller:
                   noteController,
-              label: 'Note',
+
+              maxLines: 6,
+
+              decoration:
+                  inputStyle(
+                'Clinical Note',
+              ),
             ),
 
-            buildInput(
-              controller:
-                  mgPerKgMinController,
-              label: 'mg/kg Min',
-            ),
+            const SizedBox(
+                height: 30),
 
-            buildInput(
-              controller:
-                  mgPerKgMaxController,
-              label: 'mg/kg Max',
-            ),
+            SizedBox(
 
-            buildInput(
-              controller:
-                  syrupMgController,
-              label: 'Syrup mg',
-            ),
+              width:
+                  double.infinity,
 
-            buildInput(
-              controller:
-                  syrupMlController,
-              label: 'Syrup ml',
-            ),
-
-            const SizedBox(height: 20),
-
-            ElevatedButton(
-
-              onPressed:
-                  isLoading
-                      ? null
-                      : addDrug,
+              height: 55,
 
               child:
-                  const Text(
-                'ADD DRUG',
+                  ElevatedButton(
+
+                onPressed:
+                    isLoading
+                        ? null
+                        : saveDrug,
+
+                child:
+                    isLoading
+
+                        ? const CircularProgressIndicator()
+
+                        : const Text(
+                            'SAVE DRUG',
+                          ),
               ),
             ),
           ],

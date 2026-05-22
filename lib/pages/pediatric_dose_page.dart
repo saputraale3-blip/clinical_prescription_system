@@ -96,9 +96,11 @@ class _PediatricDosePageState
       final dosageMatch =
           drug['dosage_form']
                   .toString()
-                  .toLowerCase() ==
+                  .toLowerCase()
+                  .trim() ==
               selectedDosageForm!
-                  .toLowerCase();
+                  .toLowerCase()
+                  .trim();
 
       return categoryMatch &&
           dosageMatch;
@@ -319,28 +321,36 @@ class _PediatricDosePageState
     }
 
     final minDose =
-        (selectedDrug![
-                    'mg_per_kg_min'] ??
-                0)
-            .toDouble();
+        double.tryParse(
+              selectedDrug![
+                      'mg_per_kg_min']
+                  .toString(),
+            ) ??
+            0;
 
     final maxDose =
-        (selectedDrug![
-                    'mg_per_kg_max'] ??
-                0)
-            .toDouble();
+        double.tryParse(
+              selectedDrug![
+                      'mg_per_kg_max']
+                  .toString(),
+            ) ??
+            0;
 
     final syrupMg =
-        (selectedDrug![
-                    'syrup_mg'] ??
-                0)
-            .toDouble();
+        double.tryParse(
+              selectedDrug![
+                      'syrup_mg']
+                  .toString(),
+            ) ??
+            0;
 
     final syrupMl =
-        (selectedDrug![
-                    'syrup_ml'] ??
-                0)
-            .toDouble();
+        double.tryParse(
+              selectedDrug![
+                      'syrup_ml']
+                  .toString(),
+            ) ??
+            0;
 
     final dosageForm =
         selectedDrug![
@@ -353,8 +363,7 @@ class _PediatricDosePageState
             .toString();
 
     final note =
-        selectedDrug!['note'] ??
-            '-';
+        selectedDrug!['note'] ?? '-';
 
     final minMg =
         weight * minDose;
@@ -389,10 +398,14 @@ class _PediatricDosePageState
     } else {
 
       final tabletStrength =
-          (selectedDrug![
-                      'tablet_mg'] ??
-                  500)
-              .toDouble();
+          double.tryParse(
+                selectedDrug![
+                        'dose']
+                    .toString()
+                    .replaceAll('mg', '')
+                    .trim(),
+              ) ??
+              500;
 
       final maxTab =
           maxMg / tabletStrength;
@@ -668,8 +681,7 @@ $smartSigna
 
                             child: Text(
 
-                              selectedDrug ==
-                                      null
+                              selectedDrug == null
 
                                   ? 'Select Drug'
 

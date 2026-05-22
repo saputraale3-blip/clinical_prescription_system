@@ -1,172 +1,702 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:fl_chart/fl_chart.dart';
 
-import 'add_drug_page.dart';
-import 'drug_database_page.dart';
-import 'pediatric_dose_page.dart';
-import 'login_page.dart';
-import 'admin_drug_management_page.dart';
-import 'user_management_page.dart';
+import 'package:clinical_prescription_system/pages/add_drug_page.dart';
+import 'package:clinical_prescription_system/pages/admin_drug_management_page.dart';
+import 'package:clinical_prescription_system/pages/drug_database_page.dart';
+import 'package:clinical_prescription_system/pages/login_page.dart';
+import 'package:clinical_prescription_system/pages/pediatric_dose_page.dart';
+import 'package:clinical_prescription_system/pages/user_management_page.dart';
 
-import '../services/auth_service.dart';
+import 'package:clinical_prescription_system/services/auth_service.dart';
 
-class AdminDashboardPage extends StatelessWidget {
+class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
 
-  Widget buildMenu({
-    required BuildContext context,
-    required String title,
-    required IconData icon,
-    required Widget page,
-    Color color = Colors.cyanAccent,
-  }) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => page,
+  @override
+  State<AdminDashboardPage> createState() =>
+      _AdminDashboardPageState();
+}
+
+class _AdminDashboardPageState
+    extends State<AdminDashboardPage> {
+
+  int selectedIndex = 0;
+
+  late final List<Widget> pages;
+
+  @override
+  void initState() {
+
+    super.initState();
+
+    pages = [
+
+      const DashboardHome(),
+
+      AddDrugPage(
+        key: UniqueKey(),
+      ),
+
+      AdminDrugManagementPage(
+        key: UniqueKey(),
+      ),
+
+      UserManagementPage(
+        key: UniqueKey(),
+      ),
+
+      DrugDatabasePage(
+        key: UniqueKey(),
+      ),
+
+      PediatricDosePage(
+        key: UniqueKey(),
+      ),
+    ];
+  }
+
+  final List<Map<String, dynamic>>
+      menuItems = [
+
+    {
+      'title': 'Dashboard',
+      'icon': Icons.dashboard_rounded,
+    },
+
+    {
+      'title': 'Add Drug',
+      'icon': Icons.add_box_rounded,
+    },
+
+    {
+      'title': 'Drug Management',
+      'icon': Icons.medication_rounded,
+    },
+
+    {
+      'title': 'User Management',
+      'icon': Icons.people_alt_rounded,
+    },
+
+    {
+      'title': 'Drug Database',
+      'icon': Icons.storage_rounded,
+    },
+
+    {
+      'title': 'Pediatric Dose',
+      'icon': Icons.child_care_rounded,
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Scaffold(
+
+      backgroundColor:
+          const Color(0xff071227),
+
+      body: Row(
+
+        children: [
+
+          // ======================
+          // SIDEBAR
+          // ======================
+
+          Container(
+
+            width: 300,
+
+            color:
+                const Color(0xff16243d),
+
+            child: Column(
+
+              children: [
+
+                const SizedBox(
+                  height: 50,
+                ),
+
+                const Icon(
+
+                  Icons.local_hospital_rounded,
+
+                  color:
+                      Colors.cyanAccent,
+
+                  size: 70,
+                ),
+
+                const SizedBox(
+                  height: 20,
+                ),
+
+                Text(
+
+                  'Clinical Admin',
+
+                  style:
+                      GoogleFonts.poppins(
+
+                    color:
+                        Colors.white,
+
+                    fontSize: 32,
+
+                    fontWeight:
+                        FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(
+                  height: 40,
+                ),
+
+                Expanded(
+
+                  child:
+                      ListView.builder(
+
+                    itemCount:
+                        menuItems.length,
+
+                    itemBuilder:
+                        (
+                      context,
+                      index,
+                    ) {
+
+                      final item =
+                          menuItems[index];
+
+                      final selected =
+                          selectedIndex ==
+                              index;
+
+                      return Padding(
+
+                        padding:
+                            const EdgeInsets.symmetric(
+
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+
+                        child:
+                            AnimatedContainer(
+
+                          duration:
+                              const Duration(
+                            milliseconds: 250,
+                          ),
+
+                          decoration:
+                              BoxDecoration(
+
+                            color:
+                                selected
+
+                                    ? Colors.cyanAccent
+                                        .withOpacity(
+                                        0.15,
+                                      )
+
+                                    : Colors.transparent,
+
+                            borderRadius:
+                                BorderRadius.circular(
+                              18,
+                            ),
+                          ),
+
+                          child:
+                              ListTile(
+
+                            leading:
+                                Icon(
+
+                              item['icon'],
+
+                              color:
+                                  selected
+
+                                      ? Colors.cyanAccent
+
+                                      : Colors.white,
+
+                              size: 28,
+                            ),
+
+                            title:
+                                Text(
+
+                              item['title'],
+
+                              style:
+                                  GoogleFonts.poppins(
+
+                                color:
+                                    selected
+
+                                        ? Colors.cyanAccent
+
+                                        : Colors.white,
+
+                                fontSize: 18,
+
+                                fontWeight:
+                                    selected
+
+                                        ? FontWeight.bold
+
+                                        : FontWeight.normal,
+                              ),
+                            ),
+
+                            onTap:
+                                () {
+
+                              setState(() {
+
+                                selectedIndex =
+                                    index;
+                              });
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                const Divider(
+                  color:
+                      Colors.white24,
+                ),
+
+                ListTile(
+
+                  leading: const Icon(
+
+                    Icons.logout,
+
+                    color:
+                        Colors.white,
+                  ),
+
+                  title: Text(
+
+                    'Logout',
+
+                    style:
+                        GoogleFonts.poppins(
+                      color:
+                          Colors.white,
+                    ),
+                  ),
+
+                  onTap:
+                      () async {
+
+                    await AuthService.logout();
+
+                    if (!mounted) {
+                      return;
+                    }
+
+                    Navigator.pushAndRemoveUntil(
+
+                      context,
+
+                      MaterialPageRoute(
+
+                        builder:
+                            (_) =>
+                                const LoginPage(),
+                      ),
+
+                      (route) => false,
+                    );
+                  },
+                ),
+
+                const SizedBox(
+                  height: 20,
+                ),
+              ],
+            ),
           ),
-        );
-      },
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFF1E1E1E),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black54,
-              blurRadius: 8,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 55,
-              color: color,
-            ),
-            const SizedBox(height: 20),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+
+          // ======================
+          // CONTENT
+          // ======================
+
+          Expanded(
+
+            child:
+                AnimatedSwitcher(
+
+              duration:
+                  const Duration(
+                milliseconds: 300,
               ),
+
+              child:
+                  pages[selectedIndex],
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// =====================================================
+// DASHBOARD HOME
+// =====================================================
+
+class DashboardHome
+    extends StatelessWidget {
+
+  const DashboardHome({
+    super.key,
+  });
+
+  Widget dashboardCard({
+
+    required IconData icon,
+
+    required String title,
+
+    required String value,
+
+    required Color color,
+
+  }) {
+
+    return Container(
+
+      padding:
+          const EdgeInsets.all(
+        24,
+      ),
+
+      decoration: BoxDecoration(
+
+        borderRadius:
+            BorderRadius.circular(
+          25,
         ),
+
+        color:
+            const Color(0xff16243d),
+
+        boxShadow: [
+
+          BoxShadow(
+
+            color:
+                color.withOpacity(
+              0.25,
+            ),
+
+            blurRadius: 20,
+          ),
+        ],
+      ),
+
+      child: Column(
+
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+
+        children: [
+
+          Icon(
+
+            icon,
+
+            color: color,
+
+            size: 36,
+          ),
+
+          const Spacer(),
+
+          Text(
+
+            value,
+
+            style:
+                GoogleFonts.poppins(
+
+              color:
+                  Colors.white,
+
+              fontSize: 34,
+
+              fontWeight:
+                  FontWeight.bold,
+            ),
+          ),
+
+          const SizedBox(
+            height: 8,
+          ),
+
+          Text(
+
+            title,
+
+            style:
+                GoogleFonts.poppins(
+
+              color:
+                  Colors.white70,
+
+              fontSize: 16,
+            ),
+          ),
+        ],
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF121212),
 
-      appBar: AppBar(
-        title: const Text(
-          'Admin Dashboard',
-        ),
-        backgroundColor: Colors.black,
+    return SingleChildScrollView(
 
-        actions: [
-          IconButton(
-            onPressed: () async {
-              await AuthService.logout();
-
-              if (!context.mounted) return;
-
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const LoginPage(),
-                ),
-                (route) => false,
-              );
-            },
-            icon: const Icon(Icons.logout),
-          ),
-        ],
+      padding:
+          const EdgeInsets.all(
+        35,
       ),
 
-      body: Padding(
-        padding: const EdgeInsets.all(20),
+      child: Column(
 
-        child: GridView.count(
-          crossAxisCount: 2,
-          crossAxisSpacing: 20,
-          mainAxisSpacing: 20,
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
 
-          children: [
+        children: [
 
-            // =========================
-            // ADD DRUG
-            // =========================
+          Text(
 
-            buildMenu(
-              context: context,
-              title: 'Add Drug',
-              icon: Icons.add_box,
-              color: Colors.greenAccent,
-              page: const AddDrugPage(),
+            'Dashboard Overview',
+
+            style:
+                GoogleFonts.poppins(
+
+              color:
+                  Colors.white,
+
+              fontSize: 40,
+
+              fontWeight:
+                  FontWeight.bold,
+            ),
+          ),
+
+          const SizedBox(
+            height: 10,
+          ),
+
+          Text(
+
+            'Clinical Prescription System',
+
+            style:
+                GoogleFonts.poppins(
+
+              color:
+                  Colors.white54,
+
+              fontSize: 18,
+            ),
+          ),
+
+          const SizedBox(
+            height: 35,
+          ),
+
+          SizedBox(
+
+            height: 220,
+
+            child: Row(
+
+              children: [
+
+                Expanded(
+
+                  child:
+                      dashboardCard(
+
+                    icon:
+                        Icons.medication_rounded,
+
+                    title:
+                        'Total Drugs',
+
+                    value: '128',
+
+                    color:
+                        Colors.cyanAccent,
+                  ),
+                ),
+
+                const SizedBox(
+                  width: 20,
+                ),
+
+                Expanded(
+
+                  child:
+                      dashboardCard(
+
+                    icon:
+                        Icons.people_alt_rounded,
+
+                    title:
+                        'Users',
+
+                    value: '42',
+
+                    color:
+                        Colors.orangeAccent,
+                  ),
+                ),
+
+                const SizedBox(
+                  width: 20,
+                ),
+
+                Expanded(
+
+                  child:
+                      dashboardCard(
+
+                    icon:
+                        Icons.receipt_long_rounded,
+
+                    title:
+                        'Prescriptions',
+
+                    value: '560',
+
+                    color:
+                        Colors.greenAccent,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(
+            height: 35,
+          ),
+
+          Container(
+
+            height: 400,
+
+            padding:
+                const EdgeInsets.all(
+              25,
             ),
 
-            // =========================
-            // DRUG DATABASE
-            // =========================
+            decoration: BoxDecoration(
 
-            buildMenu(
-              context: context,
-              title: 'Drug Database',
-              icon: Icons.local_pharmacy,
-              color: Colors.cyanAccent,
-              page: const DrugDatabasePage(),
+              color:
+                  const Color(0xff16243d),
+
+              borderRadius:
+                  BorderRadius.circular(
+                30,
+              ),
             ),
 
-            // =========================
-            // PEDIATRIC DOSE
-            // =========================
+            child: Column(
 
-            buildMenu(
-              context: context,
-              title: 'Pediatric Dose',
-              icon: Icons.child_care,
-              color: Colors.orangeAccent,
-              page: const PediatricDosePage(),
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+
+              children: [
+
+                Text(
+
+                  'Prescription Analytics',
+
+                  style:
+                      GoogleFonts.poppins(
+
+                    color:
+                        Colors.white,
+
+                    fontSize: 24,
+
+                    fontWeight:
+                        FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(
+                  height: 30,
+                ),
+
+                Expanded(
+
+                  child:
+                      LineChart(
+
+                    LineChartData(
+
+                      borderData:
+                          FlBorderData(
+                        show: false,
+                      ),
+
+                      gridData:
+                          FlGridData(
+                        show: true,
+                      ),
+
+                      lineBarsData: [
+
+                        LineChartBarData(
+
+                          isCurved: true,
+
+                          color:
+                              Colors.cyanAccent,
+
+                          barWidth: 5,
+
+                          spots: const [
+
+                            FlSpot(0, 1),
+                            FlSpot(1, 3),
+                            FlSpot(2, 2),
+                            FlSpot(3, 5),
+                            FlSpot(4, 4),
+                            FlSpot(5, 7),
+                            FlSpot(6, 6),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-
-            // =========================
-            // DRUG MANAGEMENT
-            // =========================
-
-            buildMenu(
-              context: context,
-              title: 'Drug Management',
-              icon: Icons.edit_note,
-              color: Colors.purpleAccent,
-              page: const AdminDrugManagementPage(),
-            ),
-
-            // =========================
-            // USER MANAGEMENT
-            // =========================
-
-            buildMenu(
-              context: context,
-              title: 'User Management',
-              icon: Icons.manage_accounts,
-              color: Colors.redAccent,
-              page: const UserManagementPage(),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

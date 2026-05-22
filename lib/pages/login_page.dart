@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/auth_service.dart';
+
 import 'home_page.dart';
+import 'admin_dashboard_page.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
 
-  const LoginPage({super.key});
+  const LoginPage({
+    super.key,
+  });
 
   @override
   State<LoginPage> createState() =>
@@ -25,17 +28,13 @@ class _LoginPageState
 
   bool isLoading = false;
 
-  // =========================
-  // LOGIN
-  // =========================
-
   Future<void> login() async {
 
     setState(() {
       isLoading = true;
     });
 
-    final error =
+    final result =
         await AuthService.login(
 
       username:
@@ -45,142 +44,68 @@ class _LoginPageState
           passwordController.text,
     );
 
-    // =========================
-    // LOGIN FAILED
-    // =========================
-
-    if (error != null) {
-
-      if (mounted) {
-
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(
-
-          SnackBar(
-            content: Text(error),
-          ),
-        );
-      }
-
-      setState(() {
-        isLoading = false;
-      });
-
-      return;
-    }
-
-    // =========================
-    // CHECK APPROVAL
-    // =========================
-
-    final supabase =
-        Supabase.instance.client;
-
-    final user =
-        supabase.auth.currentUser;
-
-    if (user == null) {
-
-      setState(() {
-        isLoading = false;
-      });
-
-      return;
-    }
-
-    try {
-
-      final profile =
-          await supabase
-
-              .from('profiles')
-
-              .select()
-
-              .eq('id', user.id)
-
-              .single();
-
-      final approved =
-          profile['approved'] ?? false;
-
-      // =========================
-      // NOT APPROVED
-      // =========================
-
-      if (approved != true) {
-
-        await supabase.auth.signOut();
-
-        if (mounted) {
-
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(
-
-            const SnackBar(
-
-              content: Text(
-                'Account pending admin approval',
-              ),
-            ),
-          );
-        }
-
-        setState(() {
-          isLoading = false;
-        });
-
-        return;
-      }
-
-      // =========================
-      // LOGIN SUCCESS
-      // =========================
-
-      if (mounted) {
-
-        Navigator.pushReplacement(
-
-          context,
-
-          MaterialPageRoute(
-
-            builder:
-                (_) =>
-                    const HomePage(),
-          ),
-        );
-      }
-    }
-
-    catch (e) {
-
-      await supabase.auth.signOut();
-
-      if (mounted) {
-
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(
-
-          SnackBar(
-            content:
-                Text(e.toString()),
-          ),
-        );
-      }
-    }
-
     setState(() {
       isLoading = false;
     });
-  }
 
-  // =========================
-  // UI
-  // =========================
+    if (!mounted) return;
+
+    // LOGIN GAGAL
+
+    if (result != null) {
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+
+        SnackBar(
+          content: Text(result),
+        ),
+      );
+
+      return;
+    }
+
+    // CHECK ADMIN
+
+    final isAdmin =
+        await AuthService.isAdmin();
+
+    if (!mounted) return;
+
+    // ADMIN
+
+    if (isAdmin) {
+
+      Navigator.pushReplacement(
+
+        context,
+
+        MaterialPageRoute(
+
+          builder:
+              (_) =>
+                  const AdminDashboardPage(),
+        ),
+      );
+    }
+
+    // USER
+
+    else {
+
+      Navigator.pushReplacement(
+
+        context,
+
+        MaterialPageRoute(
+
+          builder:
+              (_) =>
+                  const HomePage(),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -188,249 +113,280 @@ class _LoginPageState
     return Scaffold(
 
       backgroundColor:
-          const Color(0xFF121212),
+          const Color(0xFF0F172A),
 
       body: Center(
 
         child: SingleChildScrollView(
 
-          padding:
-              const EdgeInsets.all(
-            24,
-          ),
+          child: Padding(
 
-          child: Column(
+            padding:
+                const EdgeInsets.all(
+              24,
+            ),
 
-            children: [
+            child: Container(
 
-              const Icon(
-
-                Icons.medical_services,
-
-                color: Colors.cyanAccent,
-
-                size: 90,
+              constraints:
+                  const BoxConstraints(
+                maxWidth: 420,
               ),
 
-              const SizedBox(height: 20),
+              padding:
+                  const EdgeInsets.all(
+                28,
+              ),
 
-              const Text(
+              decoration:
+                  BoxDecoration(
 
-                'Clinical Prescription System',
+                color:
+                    const Color(
+                  0xFF1E293B,
+                ),
 
-                textAlign:
-                    TextAlign.center,
-
-                style: TextStyle(
-
-                  color: Colors.white,
-
-                  fontSize: 28,
-
-                  fontWeight:
-                      FontWeight.bold,
+                borderRadius:
+                    BorderRadius.circular(
+                  30,
                 ),
               ),
 
-              const SizedBox(height: 40),
+              child: Column(
 
-              // =========================
-              // USERNAME
-              // =========================
+                mainAxisSize:
+                    MainAxisSize.min,
 
-              TextField(
+                children: [
 
-                controller:
-                    usernameController,
+                  const Icon(
 
-                style:
-                    const TextStyle(
-                  color: Colors.white,
-                ),
+                    Icons.local_hospital_rounded,
 
-                decoration:
-                    InputDecoration(
-
-                  hintText:
-                      'Username',
-
-                  hintStyle:
-                      const TextStyle(
-                    color:
-                        Colors.white54,
-                  ),
-
-                  prefixIcon:
-                      const Icon(
-
-                    Icons.person,
+                    size: 80,
 
                     color:
-                        Colors.white70,
+                        Colors.cyan,
                   ),
 
-                  filled: true,
+                  const SizedBox(height: 20),
 
-                  fillColor:
-                      const Color(
-                    0xFF1E1E1E,
-                  ),
+                  const Text(
 
-                  border:
-                      OutlineInputBorder(
+                    'Clinical Prescription System',
 
-                    borderRadius:
-                        BorderRadius.circular(
-                      14,
+                    textAlign:
+                        TextAlign.center,
+
+                    style: TextStyle(
+
+                      color:
+                          Colors.white,
+
+                      fontSize: 28,
+
+                      fontWeight:
+                          FontWeight.bold,
                     ),
                   ),
-                ),
-              ),
 
-              const SizedBox(height: 20),
+                  const SizedBox(height: 10),
 
-              // =========================
-              // PASSWORD
-              // =========================
+                  Text(
 
-              TextField(
+                    'Login to continue',
 
-                controller:
-                    passwordController,
+                    style: TextStyle(
 
-                obscureText: true,
-
-                style:
-                    const TextStyle(
-                  color: Colors.white,
-                ),
-
-                decoration:
-                    InputDecoration(
-
-                  hintText:
-                      'Password',
-
-                  hintStyle:
-                      const TextStyle(
-                    color:
-                        Colors.white54,
-                  ),
-
-                  prefixIcon:
-                      const Icon(
-
-                    Icons.lock,
-
-                    color:
-                        Colors.white70,
-                  ),
-
-                  filled: true,
-
-                  fillColor:
-                      const Color(
-                    0xFF1E1E1E,
-                  ),
-
-                  border:
-                      OutlineInputBorder(
-
-                    borderRadius:
-                        BorderRadius.circular(
-                      14,
+                      color:
+                          Colors.white
+                              .withOpacity(
+                        0.7,
+                      ),
                     ),
                   ),
-                ),
-              ),
 
-              const SizedBox(height: 30),
+                  const SizedBox(height: 35),
 
-              // =========================
-              // LOGIN BUTTON
-              // =========================
+                  TextField(
 
-              SizedBox(
+                    controller:
+                        usernameController,
 
-                width:
-                    double.infinity,
-
-                height: 55,
-
-                child:
-                    ElevatedButton(
-
-                  onPressed:
-                      isLoading
-                          ? null
-                          : login,
-
-                  style:
-                      ElevatedButton.styleFrom(
-
-                    backgroundColor:
-                        Colors.cyanAccent,
-
-                    foregroundColor:
-                        Colors.black,
-                  ),
-
-                  child:
-
-                      isLoading
-
-                          ? const CircularProgressIndicator()
-
-                          : const Text(
-
-                              'LOGIN',
-
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight:
-                                    FontWeight.bold,
-                              ),
-                            ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // =========================
-              // REGISTER BUTTON
-              // =========================
-
-              TextButton(
-
-                onPressed: () {
-
-                  Navigator.push(
-
-                    context,
-
-                    MaterialPageRoute(
-
-                      builder:
-                          (_) =>
-                              const RegisterPage(),
+                    style:
+                        const TextStyle(
+                      color:
+                          Colors.white,
                     ),
-                  );
-                },
 
-                child: const Text(
+                    decoration:
+                        InputDecoration(
 
-                  'Create new account',
+                      labelText:
+                          'Username',
 
-                  style: TextStyle(
+                      labelStyle:
+                          const TextStyle(
+                        color:
+                            Colors.white70,
+                      ),
 
-                    color:
-                        Colors.cyanAccent,
+                      filled: true,
 
-                    fontSize: 16,
+                      fillColor:
+                          const Color(
+                        0xFF334155,
+                      ),
+
+                      border:
+                          OutlineInputBorder(
+
+                        borderRadius:
+                            BorderRadius.circular(
+                          18,
+                        ),
+
+                        borderSide:
+                            BorderSide.none,
+                      ),
+                    ),
                   ),
-                ),
+
+                  const SizedBox(height: 20),
+
+                  TextField(
+
+                    controller:
+                        passwordController,
+
+                    obscureText: true,
+
+                    style:
+                        const TextStyle(
+                      color:
+                          Colors.white,
+                    ),
+
+                    decoration:
+                        InputDecoration(
+
+                      labelText:
+                          'Password',
+
+                      labelStyle:
+                          const TextStyle(
+                        color:
+                            Colors.white70,
+                      ),
+
+                      filled: true,
+
+                      fillColor:
+                          const Color(
+                        0xFF334155,
+                      ),
+
+                      border:
+                          OutlineInputBorder(
+
+                        borderRadius:
+                            BorderRadius.circular(
+                          18,
+                        ),
+
+                        borderSide:
+                            BorderSide.none,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  SizedBox(
+
+                    width:
+                        double.infinity,
+
+                    height: 55,
+
+                    child: ElevatedButton(
+
+                      style:
+                          ElevatedButton.styleFrom(
+
+                        backgroundColor:
+                            Colors.cyan,
+
+                        shape:
+                            RoundedRectangleBorder(
+
+                          borderRadius:
+                              BorderRadius.circular(
+                            18,
+                          ),
+                        ),
+                      ),
+
+                      onPressed:
+                          isLoading
+                              ? null
+                              : login,
+
+                      child:
+                          isLoading
+
+                              ? const CircularProgressIndicator(
+                                  color:
+                                      Colors.white,
+                                )
+
+                              : const Text(
+
+                                  'LOGIN',
+
+                                  style: TextStyle(
+
+                                    fontWeight:
+                                        FontWeight.bold,
+
+                                    fontSize: 16,
+                                  ),
+                                ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  TextButton(
+
+                    onPressed: () {
+
+                      Navigator.push(
+
+                        context,
+
+                        MaterialPageRoute(
+
+                          builder:
+                              (_) =>
+                                  const RegisterPage(),
+                        ),
+                      );
+                    },
+
+                    child: const Text(
+
+                      'Create new account',
+
+                      style: TextStyle(
+                        color:
+                            Colors.cyan,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

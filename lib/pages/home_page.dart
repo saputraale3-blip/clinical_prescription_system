@@ -1,108 +1,70 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../services/auth_service.dart';
+import '../theme/theme_provider.dart';
 
+import 'drug_database_page.dart';
 import 'login_page.dart';
 import 'pediatric_dose_page.dart';
-import 'drug_database_page.dart';
-import 'add_drug_page.dart';
-import 'admin_dashboard_page.dart';
+import 'prescription_page.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends StatelessWidget {
 
-  const HomePage({super.key});
-
-  @override
-  State<HomePage> createState() =>
-      _HomePageState();
-}
-
-class _HomePageState
-    extends State<HomePage> {
-
-  bool isAdmin = false;
-
-  @override
-  void initState() {
-
-    super.initState();
-
-    loadRole();
-  }
-
-  Future<void> loadRole() async {
-
-    try {
-
-      final admin =
-          await AuthService.isAdmin();
-
-      if (mounted) {
-
-        setState(() {
-
-          isAdmin = admin;
-        });
-      }
-    }
-
-    catch (e) {
-
-      debugPrint(
-        e.toString(),
-      );
-    }
-  }
+  const HomePage({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
 
-if (isAdmin) {
+    final width =
+        MediaQuery.of(context)
+            .size
+            .width;
 
-  return const AdminDashboardPage();
-}
+    int crossAxisCount = 2;
+
+    if (width > 1200) {
+
+      crossAxisCount = 4;
+    }
+
+    else if (width > 800) {
+
+      crossAxisCount = 3;
+    }
 
     return Scaffold(
-
-      backgroundColor:
-          const Color(0xFF121212),
 
       appBar: AppBar(
 
         title: const Text(
-          'Clinical Prescription System',
+          'Clinical Prescription',
         ),
-
-        backgroundColor:
-            Colors.black,
 
         actions: [
 
-          if (isAdmin)
+          // THEME BUTTON
 
-            const Padding(
+          IconButton(
 
-              padding: EdgeInsets.only(
-                right: 10,
-              ),
+            onPressed: () {
 
-              child: Center(
+              Provider.of<ThemeProvider>(
 
-                child: Text(
+                context,
 
-                  'ADMIN',
+                listen: false,
+              ).toggleTheme();
+            },
 
-                  style: TextStyle(
-
-                    color:
-                        Colors.cyanAccent,
-
-                    fontWeight:
-                        FontWeight.bold,
-                  ),
-                ),
-              ),
+            icon: const Icon(
+              Icons.dark_mode_rounded,
             ),
+          ),
+
+          // LOGOUT
 
           IconButton(
 
@@ -110,7 +72,9 @@ if (isAdmin) {
 
               await AuthService.logout();
 
-              if (!mounted) return;
+              if (!context.mounted) {
+                return;
+              }
 
               Navigator.pushAndRemoveUntil(
 
@@ -118,8 +82,9 @@ if (isAdmin) {
 
                 MaterialPageRoute(
 
-                  builder: (context) =>
-                      const LoginPage(),
+                  builder:
+                      (_) =>
+                          const LoginPage(),
                 ),
 
                 (route) => false,
@@ -127,225 +92,454 @@ if (isAdmin) {
             },
 
             icon: const Icon(
-              Icons.logout,
+              Icons.logout_rounded,
             ),
           ),
         ],
       ),
-
-      floatingActionButton:
-
-          isAdmin
-
-              ? FloatingActionButton(
-
-                  backgroundColor:
-                      Colors.cyanAccent,
-
-                  onPressed: () async {
-
-                    await Navigator.push(
-
-                      context,
-
-                      MaterialPageRoute(
-
-                        builder: (context) =>
-                            const AddDrugPage(),
-                      ),
-                    );
-
-                    if (mounted) {
-
-                      setState(() {});
-                    }
-                  },
-
-                  child: const Icon(
-
-                    Icons.add,
-
-                    color: Colors.black,
-                  ),
-                )
-
-              : null,
 
       body: Padding(
 
         padding:
             const EdgeInsets.all(20),
 
-        child: GridView.count(
+        child: Column(
 
-          crossAxisCount: 2,
-
-          crossAxisSpacing: 20,
-
-          mainAxisSpacing: 20,
+          crossAxisAlignment:
+              CrossAxisAlignment.start,
 
           children: [
 
-            buildMenuCard(
+            // HEADER
 
-              context,
+            Container(
 
-              title:
-                  'Pediatric Dose',
+              width: double.infinity,
 
-              icon:
-                  Icons.medication,
+              padding:
+                  const EdgeInsets.all(
+                28,
+              ),
 
-              onTap: () {
+              decoration:
+                  BoxDecoration(
 
-                Navigator.push(
+                gradient:
+                    const LinearGradient(
 
-                  context,
+                  colors: [
 
-                  MaterialPageRoute(
+                    Color(0xFF14B8A6),
 
-                    builder: (context) =>
-                        const PediatricDosePage(),
+                    Color(0xFF0F766E),
+                  ],
+                ),
+
+                borderRadius:
+                    BorderRadius.circular(
+                  30,
+                ),
+              ),
+
+              child: const Column(
+
+                crossAxisAlignment:
+                    CrossAxisAlignment.start,
+
+                children: [
+
+                  Text(
+
+                    'Welcome Back 👋',
+
+                    style: TextStyle(
+
+                      color:
+                          Colors.white,
+
+                      fontSize: 30,
+
+                      fontWeight:
+                          FontWeight.bold,
+                    ),
                   ),
-                );
-              },
-            ),
 
-            buildMenuCard(
+                  SizedBox(height: 10),
 
-              context,
+                  Text(
 
-              title:
-                  'Drug Database',
+                    'Access prescriptions and clinical tools easily.',
 
-              icon:
-                  Icons.local_pharmacy,
+                    style: TextStyle(
 
-              onTap: () {
+                      color:
+                          Colors.white,
 
-                Navigator.push(
-
-                  context,
-
-                  MaterialPageRoute(
-
-                    builder: (context) =>
-                        const DrugDatabasePage(),
+                      fontSize: 15,
+                    ),
                   ),
-                );
-              },
+                ],
+              ),
             ),
 
-            buildMenuCard(
+            const SizedBox(height: 30),
 
-              context,
+            const Text(
 
-              title:
-                  'Prescription',
+              'Quick Access',
 
-              icon:
-                  Icons.description,
+              style: TextStyle(
 
-              onTap: () {},
+                fontSize: 24,
+
+                fontWeight:
+                    FontWeight.bold,
+              ),
             ),
 
-            buildMenuCard(
+            const SizedBox(height: 20),
 
-              context,
+            Expanded(
 
-              title:
-                  'Settings',
+              child:
+                  GridView.count(
 
-              icon:
-                  Icons.settings,
+                crossAxisCount:
+                    crossAxisCount,
 
-              onTap: () {},
+                crossAxisSpacing:
+                    20,
+
+                mainAxisSpacing:
+                    20,
+
+                childAspectRatio:
+                    1.05,
+
+                children: const [
+
+                  AnimatedUserCard(
+
+                    title:
+                        'Drug Database',
+
+                    subtitle:
+                        'Browse medicine database',
+
+                    icon:
+                        Icons.medication_rounded,
+
+                    color:
+                        Colors.cyan,
+
+                    page:
+                        DrugDatabasePage(),
+                  ),
+
+                  AnimatedUserCard(
+
+                    title:
+                        'Pediatric Dose',
+
+                    subtitle:
+                        'Child dosage calculator',
+
+                    icon:
+                        Icons.child_care_rounded,
+
+                    color:
+                        Colors.orange,
+
+                    page:
+                        PediatricDosePage(),
+                  ),
+
+                  AnimatedUserCard(
+
+                    title:
+                        'Prescription',
+
+                    subtitle:
+                        'Create prescriptions easily',
+
+                    icon:
+                        Icons.receipt_long_rounded,
+
+                    color:
+                        Colors.green,
+
+                    page:
+                        PrescriptionPage(),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget buildMenuCard(
+// =====================================
+// ANIMATED USER CARD
+// =====================================
 
-    BuildContext context, {
+class AnimatedUserCard
+    extends StatefulWidget {
 
-    required String title,
+  final String title;
 
-    required IconData icon,
+  final String subtitle;
 
-    required VoidCallback onTap,
+  final IconData icon;
 
-  }) {
+  final Color color;
 
-    return InkWell(
+  final Widget page;
 
-      onTap: onTap,
+  const AnimatedUserCard({
 
-      borderRadius:
-          BorderRadius.circular(20),
+    super.key,
 
-      child: Container(
+    required this.title,
 
-        decoration: BoxDecoration(
+    required this.subtitle,
 
-          color:
-              const Color(0xFF1E1E1E),
+    required this.icon,
 
-          borderRadius:
-              BorderRadius.circular(20),
+    required this.color,
 
-          boxShadow: const [
+    required this.page,
+  });
 
-            BoxShadow(
+  @override
+  State<AnimatedUserCard>
+      createState() =>
+          _AnimatedUserCardState();
+}
 
-              color: Colors.black54,
+class _AnimatedUserCardState
+    extends State<AnimatedUserCard> {
 
-              blurRadius: 8,
+  bool isHover = false;
 
-              offset: Offset(0, 4),
+  @override
+  Widget build(BuildContext context) {
+
+    return MouseRegion(
+
+      onEnter: (_) {
+
+        setState(() {
+          isHover = true;
+        });
+      },
+
+      onExit: (_) {
+
+        setState(() {
+          isHover = false;
+        });
+      },
+
+      child: GestureDetector(
+
+        onTap: () {
+
+          Navigator.push(
+
+            context,
+
+            MaterialPageRoute(
+
+              builder:
+                  (_) =>
+                      widget.page,
             ),
-          ],
-        ),
+          );
+        },
 
-        child: Column(
+        child:
+            AnimatedContainer(
 
-          mainAxisAlignment:
-              MainAxisAlignment.center,
+          duration:
+              const Duration(
+            milliseconds: 250,
+          ),
 
-          children: [
+          curve:
+              Curves.easeInOut,
 
-            Icon(
+          transform:
+              Matrix4.identity()
 
-              icon,
+                ..scale(
+                  isHover
+                      ? 1.03
+                      : 1.0,
+                )
 
-              size: 55,
+                ..translate(
+                  0.0,
+                  isHover
+                      ? -8.0
+                      : 0.0,
+                ),
 
-              color:
-                  Colors.cyanAccent,
+          decoration:
+              BoxDecoration(
+
+            gradient:
+                LinearGradient(
+
+              colors: [
+
+                widget.color
+                    .withOpacity(
+                  0.9,
+                ),
+
+                widget.color
+                    .withOpacity(
+                  0.6,
+                ),
+              ],
+
+              begin:
+                  Alignment.topLeft,
+
+              end:
+                  Alignment.bottomRight,
             ),
 
-            const SizedBox(height: 20),
+            borderRadius:
+                BorderRadius.circular(
+              30,
+            ),
 
-            Text(
+            boxShadow: [
 
-              title,
+              BoxShadow(
 
-              textAlign:
-                  TextAlign.center,
+                color:
+                    widget.color
+                        .withOpacity(
+                  isHover
+                      ? 0.5
+                      : 0.25,
+                ),
 
-              style: const TextStyle(
+                blurRadius:
+                    isHover
+                        ? 30
+                        : 14,
 
-                color: Colors.white,
-
-                fontSize: 18,
-
-                fontWeight:
-                    FontWeight.bold,
+                offset:
+                    Offset(
+                  0,
+                  isHover
+                      ? 14
+                      : 8,
+                ),
               ),
+            ],
+          ),
+
+          child: Padding(
+
+            padding:
+                const EdgeInsets.all(
+              22,
             ),
-          ],
+
+            child: Column(
+
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+
+              children: [
+
+                AnimatedContainer(
+
+                  duration:
+                      const Duration(
+                    milliseconds: 250,
+                  ),
+
+                  padding:
+                      const EdgeInsets.all(
+                    14,
+                  ),
+
+                  decoration:
+                      BoxDecoration(
+
+                    color:
+                        Colors.white
+                            .withOpacity(
+                      isHover
+                          ? 0.28
+                          : 0.18,
+                    ),
+
+                    borderRadius:
+                        BorderRadius.circular(
+                      20,
+                    ),
+                  ),
+
+                  child: Icon(
+
+                    widget.icon,
+
+                    color:
+                        Colors.white,
+
+                    size: 34,
+                  ),
+                ),
+
+                const Spacer(),
+
+                Text(
+
+                  widget.title,
+
+                  style:
+                      const TextStyle(
+
+                    color:
+                        Colors.white,
+
+                    fontSize: 22,
+
+                    fontWeight:
+                        FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                Text(
+
+                  widget.subtitle,
+
+                  style:
+                      TextStyle(
+
+                    color:
+                        Colors.white
+                            .withOpacity(
+                      0.92,
+                    ),
+
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
