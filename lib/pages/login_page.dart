@@ -1,16 +1,16 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 import '../services/auth_service.dart';
 
-import 'home_page.dart';
 import 'admin_dashboard_page.dart';
+import 'home_page.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
 
-  const LoginPage({
-    super.key,
-  });
+  const LoginPage({super.key});
 
   @override
   State<LoginPage> createState() =>
@@ -26,6 +26,8 @@ class _LoginPageState
   final passwordController =
       TextEditingController();
 
+  bool obscurePassword = true;
+
   bool isLoading = false;
 
   Future<void> login() async {
@@ -34,14 +36,14 @@ class _LoginPageState
       isLoading = true;
     });
 
-    final result =
+    final error =
         await AuthService.login(
 
       username:
-          usernameController.text,
+          usernameController.text.trim(),
 
       password:
-          passwordController.text,
+          passwordController.text.trim(),
     );
 
     setState(() {
@@ -50,345 +52,541 @@ class _LoginPageState
 
     if (!mounted) return;
 
-    // LOGIN GAGAL
-
-    if (result != null) {
+    if (error != null) {
 
       ScaffoldMessenger.of(context)
           .showSnackBar(
 
         SnackBar(
-          content: Text(result),
+          backgroundColor:
+              Colors.redAccent,
+
+          content: Text(error),
         ),
       );
 
       return;
     }
 
-    // CHECK ADMIN
-
     final isAdmin =
         await AuthService.isAdmin();
 
     if (!mounted) return;
 
-    // ADMIN
+    Navigator.pushReplacement(
 
-    if (isAdmin) {
+      context,
 
-      Navigator.pushReplacement(
+      MaterialPageRoute(
 
-        context,
+        builder:
+            (_) => isAdmin
 
-        MaterialPageRoute(
+                ? const AdminDashboardPage()
 
-          builder:
-              (_) =>
-                  const AdminDashboardPage(),
+                : const HomePage(),
+      ),
+    );
+  }
+
+  InputDecoration inputStyle({
+
+    required String hint,
+
+    required IconData icon,
+
+    Widget? suffix,
+  }) {
+
+    return InputDecoration(
+
+      hintText: hint,
+
+      hintStyle:
+          const TextStyle(
+        color: Colors.white54,
+      ),
+
+      prefixIcon:
+          Icon(
+        icon,
+        color: Colors.cyanAccent,
+      ),
+
+      suffixIcon: suffix,
+
+      filled: true,
+
+      fillColor:
+          Colors.white.withOpacity(
+        0.06,
+      ),
+
+      border:
+          OutlineInputBorder(
+
+        borderRadius:
+            BorderRadius.circular(
+          20,
         ),
-      );
-    }
 
-    // USER
-
-    else {
-
-      Navigator.pushReplacement(
-
-        context,
-
-        MaterialPageRoute(
-
-          builder:
-              (_) =>
-                  const HomePage(),
-        ),
-      );
-    }
+        borderSide:
+            BorderSide.none,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
 
+    final width =
+        MediaQuery.of(context)
+            .size
+            .width;
+
     return Scaffold(
 
-      backgroundColor:
-          const Color(0xFF0F172A),
+      body: Stack(
 
-      body: Center(
+        children: [
 
-        child: SingleChildScrollView(
+          // BACKGROUND
 
-          child: Padding(
+          Container(
 
-            padding:
-                const EdgeInsets.all(
-              24,
-            ),
+            decoration:
+                const BoxDecoration(
 
-            child: Container(
+              gradient:
+                  LinearGradient(
 
-              constraints:
-                  const BoxConstraints(
-                maxWidth: 420,
-              ),
+                begin:
+                    Alignment.topLeft,
 
-              padding:
-                  const EdgeInsets.all(
-                28,
-              ),
+                end:
+                    Alignment.bottomRight,
 
-              decoration:
-                  BoxDecoration(
+                colors: [
 
-                color:
-                    const Color(
-                  0xFF1E293B,
-                ),
+                  Color(0xff071227),
 
-                borderRadius:
-                    BorderRadius.circular(
-                  30,
-                ),
-              ),
+                  Color(0xff0d1f3a),
 
-              child: Column(
-
-                mainAxisSize:
-                    MainAxisSize.min,
-
-                children: [
-
-                  const Icon(
-
-                    Icons.local_hospital_rounded,
-
-                    size: 80,
-
-                    color:
-                        Colors.cyan,
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  const Text(
-
-                    'Clinical Prescription System',
-
-                    textAlign:
-                        TextAlign.center,
-
-                    style: TextStyle(
-
-                      color:
-                          Colors.white,
-
-                      fontSize: 28,
-
-                      fontWeight:
-                          FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  Text(
-
-                    'Login to continue',
-
-                    style: TextStyle(
-
-                      color:
-                          Colors.white
-                              .withOpacity(
-                        0.7,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 35),
-
-                  TextField(
-
-                    controller:
-                        usernameController,
-
-                    style:
-                        const TextStyle(
-                      color:
-                          Colors.white,
-                    ),
-
-                    decoration:
-                        InputDecoration(
-
-                      labelText:
-                          'Username',
-
-                      labelStyle:
-                          const TextStyle(
-                        color:
-                            Colors.white70,
-                      ),
-
-                      filled: true,
-
-                      fillColor:
-                          const Color(
-                        0xFF334155,
-                      ),
-
-                      border:
-                          OutlineInputBorder(
-
-                        borderRadius:
-                            BorderRadius.circular(
-                          18,
-                        ),
-
-                        borderSide:
-                            BorderSide.none,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  TextField(
-
-                    controller:
-                        passwordController,
-
-                    obscureText: true,
-
-                    style:
-                        const TextStyle(
-                      color:
-                          Colors.white,
-                    ),
-
-                    decoration:
-                        InputDecoration(
-
-                      labelText:
-                          'Password',
-
-                      labelStyle:
-                          const TextStyle(
-                        color:
-                            Colors.white70,
-                      ),
-
-                      filled: true,
-
-                      fillColor:
-                          const Color(
-                        0xFF334155,
-                      ),
-
-                      border:
-                          OutlineInputBorder(
-
-                        borderRadius:
-                            BorderRadius.circular(
-                          18,
-                        ),
-
-                        borderSide:
-                            BorderSide.none,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 28),
-
-                  SizedBox(
-
-                    width:
-                        double.infinity,
-
-                    height: 55,
-
-                    child: ElevatedButton(
-
-                      style:
-                          ElevatedButton.styleFrom(
-
-                        backgroundColor:
-                            Colors.cyan,
-
-                        shape:
-                            RoundedRectangleBorder(
-
-                          borderRadius:
-                              BorderRadius.circular(
-                            18,
-                          ),
-                        ),
-                      ),
-
-                      onPressed:
-                          isLoading
-                              ? null
-                              : login,
-
-                      child:
-                          isLoading
-
-                              ? const CircularProgressIndicator(
-                                  color:
-                                      Colors.white,
-                                )
-
-                              : const Text(
-
-                                  'LOGIN',
-
-                                  style: TextStyle(
-
-                                    fontWeight:
-                                        FontWeight.bold,
-
-                                    fontSize: 16,
-                                  ),
-                                ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  TextButton(
-
-                    onPressed: () {
-
-                      Navigator.push(
-
-                        context,
-
-                        MaterialPageRoute(
-
-                          builder:
-                              (_) =>
-                                  const RegisterPage(),
-                        ),
-                      );
-                    },
-
-                    child: const Text(
-
-                      'Create new account',
-
-                      style: TextStyle(
-                        color:
-                            Colors.cyan,
-                      ),
-                    ),
-                  ),
+                  Color(0xff071227),
                 ],
               ),
             ),
           ),
-        ),
+
+          Positioned(
+
+            top: -120,
+
+            left: -120,
+
+            child: Container(
+
+              width: 300,
+
+              height: 300,
+
+              decoration:
+                  BoxDecoration(
+
+                shape: BoxShape.circle,
+
+                color:
+                    Colors.cyanAccent
+                        .withOpacity(
+                  0.15,
+                ),
+              ),
+            ),
+          ),
+
+          Positioned(
+
+            bottom: -120,
+
+            right: -120,
+
+            child: Container(
+
+              width: 300,
+
+              height: 300,
+
+              decoration:
+                  BoxDecoration(
+
+                shape: BoxShape.circle,
+
+                color:
+                    Colors.blueAccent
+                        .withOpacity(
+                  0.12,
+                ),
+              ),
+            ),
+          ),
+
+          Center(
+
+            child: SingleChildScrollView(
+
+              padding:
+                  const EdgeInsets.all(
+                20,
+              ),
+
+              child: ClipRRect(
+
+                borderRadius:
+                    BorderRadius.circular(
+                  35,
+                ),
+
+                child: BackdropFilter(
+
+                  filter:
+                      ImageFilter.blur(
+
+                    sigmaX: 15,
+
+                    sigmaY: 15,
+                  ),
+
+                  child: Container(
+
+                    width:
+                        width > 600
+                            ? 470
+                            : double.infinity,
+
+                    padding:
+                        const EdgeInsets.all(
+                      35,
+                    ),
+
+                    decoration:
+                        BoxDecoration(
+
+                      color:
+                          Colors.white
+                              .withOpacity(
+                        0.08,
+                      ),
+
+                      borderRadius:
+                          BorderRadius.circular(
+                        35,
+                      ),
+
+                      border: Border.all(
+
+                        color:
+                            Colors.white
+                                .withOpacity(
+                          0.1,
+                        ),
+                      ),
+                    ),
+
+                    child: Column(
+
+                      mainAxisSize:
+                          MainAxisSize.min,
+
+                      children: [
+
+                        Container(
+
+                          padding:
+                              const EdgeInsets.all(
+                            22,
+                          ),
+
+                          decoration:
+                              BoxDecoration(
+
+                            shape:
+                                BoxShape.circle,
+
+                            gradient:
+                                LinearGradient(
+
+                              colors: [
+
+                                Colors.cyanAccent,
+
+                                Colors.blueAccent,
+                              ],
+                            ),
+                          ),
+
+                          child: const Icon(
+
+                            Icons.local_hospital_rounded,
+
+                            color:
+                                Colors.white,
+
+                            size: 60,
+                          ),
+                        ),
+
+                        const SizedBox(
+                          height: 30,
+                        ),
+
+                        const Text(
+
+                          'Clinical Prescription',
+
+                          textAlign:
+                              TextAlign.center,
+
+                          style: TextStyle(
+
+                            color:
+                                Colors.white,
+
+                            fontSize: 34,
+
+                            fontWeight:
+                                FontWeight.bold,
+                          ),
+                        ),
+
+                        const SizedBox(
+                          height: 12,
+                        ),
+
+                        const Text(
+
+                          'Modern Clinical Management System',
+
+                          textAlign:
+                              TextAlign.center,
+
+                          style: TextStyle(
+
+                            color:
+                                Colors.white60,
+
+                            fontSize: 15,
+                          ),
+                        ),
+
+                        const SizedBox(
+                          height: 40,
+                        ),
+
+                        TextField(
+
+                          controller:
+                              usernameController,
+
+                          style:
+                              const TextStyle(
+                            color:
+                                Colors.white,
+                          ),
+
+                          decoration:
+                              inputStyle(
+
+                            hint:
+                                'Username',
+
+                            icon:
+                                Icons.person_rounded,
+                          ),
+                        ),
+
+                        const SizedBox(
+                          height: 22,
+                        ),
+
+                        TextField(
+
+                          controller:
+                              passwordController,
+
+                          obscureText:
+                              obscurePassword,
+
+                          style:
+                              const TextStyle(
+                            color:
+                                Colors.white,
+                          ),
+
+                          decoration:
+                              inputStyle(
+
+                            hint:
+                                'Password',
+
+                            icon:
+                                Icons.lock_rounded,
+
+                            suffix:
+                                IconButton(
+
+                              onPressed: () {
+
+                                setState(() {
+
+                                  obscurePassword =
+                                      !obscurePassword;
+                                });
+                              },
+
+                              icon: Icon(
+
+                                obscurePassword
+
+                                    ? Icons.visibility_off
+
+                                    : Icons.visibility,
+
+                                color:
+                                    Colors.white70,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(
+                          height: 35,
+                        ),
+
+                        SizedBox(
+
+                          width:
+                              double.infinity,
+
+                          height: 58,
+
+                          child:
+                              ElevatedButton(
+
+                            style:
+                                ElevatedButton.styleFrom(
+
+                              backgroundColor:
+                                  Colors.cyanAccent,
+
+                              foregroundColor:
+                                  Colors.black,
+
+                              elevation: 12,
+
+                              shadowColor:
+                                  Colors.cyanAccent,
+
+                              shape:
+                                  RoundedRectangleBorder(
+
+                                borderRadius:
+                                    BorderRadius.circular(
+                                  22,
+                                ),
+                              ),
+                            ),
+
+                            onPressed:
+                                isLoading
+                                    ? null
+                                    : login,
+
+                            child:
+                                isLoading
+
+                                    ? const CircularProgressIndicator(
+                                        color:
+                                            Colors.black,
+                                      )
+
+                                    : const Text(
+
+                                        'LOGIN',
+
+                                        style: TextStyle(
+
+                                          fontWeight:
+                                              FontWeight.bold,
+
+                                          fontSize:
+                                              18,
+                                        ),
+                                      ),
+                          ),
+                        ),
+
+                        const SizedBox(
+                          height: 25,
+                        ),
+
+                        Row(
+
+                          mainAxisAlignment:
+                              MainAxisAlignment.center,
+
+                          children: [
+
+                            const Text(
+
+                              'No account yet? ',
+
+                              style: TextStyle(
+                                color:
+                                    Colors.white70,
+                              ),
+                            ),
+
+                            GestureDetector(
+
+                              onTap: () {
+
+                                Navigator.push(
+
+                                  context,
+
+                                  MaterialPageRoute(
+
+                                    builder:
+                                        (_) =>
+                                            const RegisterPage(),
+                                  ),
+                                );
+                              },
+
+                              child: const Text(
+
+                                'Create Account',
+
+                                style: TextStyle(
+
+                                  color:
+                                      Colors.cyanAccent,
+
+                                  fontWeight:
+                                      FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
