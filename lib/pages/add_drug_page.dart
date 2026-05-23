@@ -12,6 +12,10 @@ class AddDrugPage extends StatefulWidget {
 class _AddDrugPageState
     extends State<AddDrugPage> {
 
+  // =====================================================
+  // CONTROLLERS
+  // =====================================================
+
   final nameController =
       TextEditingController();
 
@@ -21,14 +25,13 @@ class _AddDrugPageState
   final doseController =
       TextEditingController();
 
-  final frequencyController =
-      TextEditingController();
-
-  final prescriptionController =
-      TextEditingController();
-
   final noteController =
       TextEditingController();
+
+  final qtyController =
+      TextEditingController(
+    text: '10',
+  );
 
   final mgKgMinController =
       TextEditingController();
@@ -42,6 +45,10 @@ class _AddDrugPageState
   final syrupMlController =
       TextEditingController();
 
+  // =====================================================
+  // DROPDOWN DATA
+  // =====================================================
+
   final categories = [
 
     'Analgesic',
@@ -53,19 +60,31 @@ class _AddDrugPageState
     'Antiviral',
 
     'Antihistamine',
+
+    'Antacid',
+
+    'Vitamin',
+
+    'Antihypertensive',
+
+    'Respiratory',
   ];
 
   final dosageForms = [
 
     'tablet',
 
-    'syrup',
-
     'capsule',
+
+    'syrup',
 
     'drops',
 
     'suspension',
+
+    'cream',
+
+    'ointment',
   ];
 
   final databaseTypes = [
@@ -74,6 +93,47 @@ class _AddDrugPageState
 
     'pediatric',
   ];
+
+  final frequencyList = [
+
+    '1 dd',
+
+    '2 dd',
+
+    '3 dd',
+
+    '4 dd',
+  ];
+
+  final signaUnitList = [
+
+    'tab',
+
+    'caps',
+
+    'cth',
+
+    'gtt',
+
+    'ung',
+  ];
+
+  final signaNoteList = [
+
+    'p.c',
+
+    'a.c',
+
+    'h.s',
+
+    'prn',
+
+    '-',
+  ];
+
+  // =====================================================
+  // SELECTED VALUE
+  // =====================================================
 
   String selectedCategory =
       'Analgesic';
@@ -84,7 +144,20 @@ class _AddDrugPageState
   String selectedDatabaseType =
       'drug database';
 
+  String selectedFrequency =
+      '3 dd';
+
+  String selectedSignaUnit =
+      'tab';
+
+  String selectedSignaNote =
+      'p.c';
+
   bool isLoading = false;
+
+  // =====================================================
+  // GETTER
+  // =====================================================
 
   bool get isPediatric {
 
@@ -104,6 +177,10 @@ class _AddDrugPageState
             'suspension';
   }
 
+  // =====================================================
+  // INPUT STYLE
+  // =====================================================
+
   InputDecoration inputStyle(
       String label) {
 
@@ -121,6 +198,57 @@ class _AddDrugPageState
       ),
     );
   }
+
+  // =====================================================
+  // BUILD PRESCRIPTION
+  // =====================================================
+
+  String buildPrescription() {
+
+    String formText = '';
+
+    if (selectedDosageForm ==
+        'tablet') {
+
+      formText = 'Tab';
+
+    } else if (selectedDosageForm ==
+        'capsule') {
+
+      formText = 'Caps';
+
+    } else if (selectedDosageForm ==
+        'syrup') {
+
+      formText = 'Fl';
+
+    } else if (selectedDosageForm ==
+        'cream') {
+
+      formText = 'Ung';
+
+    } else {
+
+      formText =
+          selectedDosageForm;
+    }
+
+    return '''
+
+R/
+
+${nameController.text} ${doseController.text}
+
+$formText No. ${qtyController.text}
+
+S $selectedFrequency $selectedSignaUnit I $selectedSignaNote
+
+''';
+  }
+
+  // =====================================================
+  // SAVE DRUG
+  // =====================================================
 
   Future<void> saveDrug()
       async {
@@ -154,15 +282,31 @@ class _AddDrugPageState
             doseController.text
                 .trim(),
 
+        // =================================
+        // NEW SYSTEM
+        // =================================
+
         frequency:
-            frequencyController
-                .text
-                .trim(),
+            selectedFrequency,
+
+        frequencySigna:
+            selectedFrequency,
+
+        signaUnit:
+            selectedSignaUnit,
+
+        signaNote:
+            selectedSignaNote,
+
+        qtyDefault:
+            int.tryParse(
+                  qtyController
+                      .text,
+                ) ??
+                10,
 
         prescription:
-            prescriptionController
-                .text
-                .trim(),
+            buildPrescription(),
 
         note:
             noteController.text
@@ -215,6 +359,8 @@ class _AddDrugPageState
         ),
       );
 
+      clearForm();
+
     } catch (e) {
 
       ScaffoldMessenger.of(
@@ -234,6 +380,36 @@ class _AddDrugPageState
       isLoading = false;
     });
   }
+
+  // =====================================================
+  // CLEAR FORM
+  // =====================================================
+
+  void clearForm() {
+
+    nameController.clear();
+
+    genericNameController
+        .clear();
+
+    doseController.clear();
+
+    noteController.clear();
+
+    mgKgMinController.clear();
+
+    mgKgMaxController.clear();
+
+    syrupMgController.clear();
+
+    syrupMlController.clear();
+
+    qtyController.text = '10';
+  }
+
+  // =====================================================
+  // UI
+  // =====================================================
 
   @override
   Widget build(
@@ -260,6 +436,10 @@ class _AddDrugPageState
         child: Column(
 
           children: [
+
+            // =====================================
+            // NAME
+            // =====================================
 
             TextField(
 
@@ -288,6 +468,10 @@ class _AddDrugPageState
 
             const SizedBox(
                 height: 20),
+
+            // =====================================
+            // CATEGORY
+            // =====================================
 
             DropdownButtonFormField<
                 String>(
@@ -327,6 +511,10 @@ class _AddDrugPageState
             const SizedBox(
                 height: 20),
 
+            // =====================================
+            // DOSAGE FORM
+            // =====================================
+
             DropdownButtonFormField<
                 String>(
 
@@ -364,6 +552,10 @@ class _AddDrugPageState
 
             const SizedBox(
                 height: 20),
+
+            // =====================================
+            // DATABASE TYPE
+            // =====================================
 
             DropdownButtonFormField<
                 String>(
@@ -403,6 +595,10 @@ class _AddDrugPageState
             const SizedBox(
                 height: 20),
 
+            // =====================================
+            // DOSE
+            // =====================================
+
             TextField(
 
               controller:
@@ -417,19 +613,157 @@ class _AddDrugPageState
             const SizedBox(
                 height: 20),
 
-            TextField(
+            // =====================================
+            // FREQUENCY
+            // =====================================
 
-              controller:
-                  frequencyController,
+            DropdownButtonFormField<
+                String>(
+
+              value:
+                  selectedFrequency,
 
               decoration:
                   inputStyle(
-                'Frequency',
+                'Frequency Signa',
+              ),
+
+              items:
+                  frequencyList.map(
+                      (e) {
+
+                return DropdownMenuItem(
+
+                  value: e,
+
+                  child:
+                      Text(e),
+                );
+              }).toList(),
+
+              onChanged:
+                  (value) {
+
+                setState(() {
+
+                  selectedFrequency =
+                      value!;
+                });
+              },
+            ),
+
+            const SizedBox(
+                height: 20),
+
+            // =====================================
+            // SIGNA UNIT
+            // =====================================
+
+            DropdownButtonFormField<
+                String>(
+
+              value:
+                  selectedSignaUnit,
+
+              decoration:
+                  inputStyle(
+                'Signa Unit',
+              ),
+
+              items:
+                  signaUnitList.map(
+                      (e) {
+
+                return DropdownMenuItem(
+
+                  value: e,
+
+                  child:
+                      Text(e),
+                );
+              }).toList(),
+
+              onChanged:
+                  (value) {
+
+                setState(() {
+
+                  selectedSignaUnit =
+                      value!;
+                });
+              },
+            ),
+
+            const SizedBox(
+                height: 20),
+
+            // =====================================
+            // SIGNA NOTE
+            // =====================================
+
+            DropdownButtonFormField<
+                String>(
+
+              value:
+                  selectedSignaNote,
+
+              decoration:
+                  inputStyle(
+                'Signa Note',
+              ),
+
+              items:
+                  signaNoteList.map(
+                      (e) {
+
+                return DropdownMenuItem(
+
+                  value: e,
+
+                  child:
+                      Text(e),
+                );
+              }).toList(),
+
+              onChanged:
+                  (value) {
+
+                setState(() {
+
+                  selectedSignaNote =
+                      value!;
+                });
+              },
+            ),
+
+            const SizedBox(
+                height: 20),
+
+            // =====================================
+            // QTY
+            // =====================================
+
+            TextField(
+
+              controller:
+                  qtyController,
+
+              keyboardType:
+                  TextInputType
+                      .number,
+
+              decoration:
+                  inputStyle(
+                'Qty Default',
               ),
             ),
 
             const SizedBox(
                 height: 20),
+
+            // =====================================
+            // PEDIATRIC
+            // =====================================
 
             if (isPediatric)
 
@@ -474,6 +808,10 @@ class _AddDrugPageState
                       height: 20),
                 ],
               ),
+
+            // =====================================
+            // SYRUP
+            // =====================================
 
             if (isPediatric &&
                 isSyrup)
@@ -520,21 +858,53 @@ class _AddDrugPageState
                 ],
               ),
 
-            TextField(
+            // =====================================
+            // AUTO PRESCRIPTION PREVIEW
+            // =====================================
 
-              controller:
-                  prescriptionController,
+            Container(
 
-              maxLines: 8,
+              width:
+                  double.infinity,
+
+              padding:
+                  const EdgeInsets.all(
+                18,
+              ),
 
               decoration:
-                  inputStyle(
-                'Prescription',
+                  BoxDecoration(
+
+                borderRadius:
+                    BorderRadius.circular(
+                  16,
+                ),
+
+                color: Colors
+                    .grey
+                    .withOpacity(
+                  0.1,
+                ),
+              ),
+
+              child: Text(
+
+                buildPrescription(),
+
+                style:
+                    const TextStyle(
+                  fontSize: 16,
+                  height: 1.8,
+                ),
               ),
             ),
 
             const SizedBox(
                 height: 20),
+
+            // =====================================
+            // NOTE
+            // =====================================
 
             TextField(
 
@@ -551,6 +921,10 @@ class _AddDrugPageState
 
             const SizedBox(
                 height: 30),
+
+            // =====================================
+            // SAVE BUTTON
+            // =====================================
 
             SizedBox(
 

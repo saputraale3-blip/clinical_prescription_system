@@ -65,56 +65,50 @@ class _HomePageState
 
     return Scaffold(
       backgroundColor:
-          const Color(0xff050816),
+          const Color(0xff030712),
 
-      drawer:
-          isMobile
-              ? Drawer(
-                  backgroundColor:
-                      const Color(
-                    0xff0d1324,
-                  ),
-                  child:
-                      buildSidebar(
-                    true,
-                  ),
-                )
-              : null,
+      drawer: isMobile
+          ? Drawer(
+              backgroundColor:
+                  const Color(
+                0xff071120,
+              ),
+              child:
+                  buildSidebar(true),
+            )
+          : null,
 
-      appBar:
-          isMobile
-              ? AppBar(
-                  elevation: 0,
-                  backgroundColor:
-                      Colors
-                          .transparent,
-                  title:
-                      const Text(
-                    'Clinical System',
-                    style: TextStyle(
-                      fontWeight:
-                          FontWeight
-                              .bold,
-                    ),
+      appBar: isMobile
+          ? AppBar(
+              elevation: 0,
+              backgroundColor:
+                  Colors.transparent,
+
+              title: const Text(
+                'Clinical Cyber',
+                style: TextStyle(
+                  fontWeight:
+                      FontWeight.bold,
+                ),
+              ),
+
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    Provider.of<
+                        ThemeProvider>(
+                      context,
+                      listen: false,
+                    ).toggleTheme();
+                  },
+                  icon: const Icon(
+                    Icons
+                        .dark_mode_rounded,
                   ),
-                  actions: [
-                    IconButton(
-                      onPressed: () {
-                        Provider.of<
-                            ThemeProvider>(
-                          context,
-                          listen:
-                              false,
-                        ).toggleTheme();
-                      },
-                      icon: const Icon(
-                        Icons
-                            .dark_mode_rounded,
-                      ),
-                    ),
-                  ],
-                )
-              : null,
+                ),
+              ],
+            )
+          : null,
 
       body: Stack(
         children: [
@@ -126,63 +120,44 @@ class _HomePageState
               gradient:
                   LinearGradient(
                 begin:
-                    Alignment
-                        .topLeft,
+                    Alignment.topLeft,
                 end:
-                    Alignment
-                        .bottomRight,
+                    Alignment.bottomRight,
                 colors: [
-                  Color(
-                    0xff020617,
-                  ),
-                  Color(
-                    0xff071227,
-                  ),
-                  Color(
-                    0xff0b1e3f,
-                  ),
+                  Color(0xff020617),
+                  Color(0xff071227),
+                  Color(0xff0a1931),
                 ],
               ),
             ),
           ),
 
+          // CYBER ORBS
+
           Positioned(
-            top: -120,
+            top: -140,
             right: -100,
-            child: Container(
-              width: 320,
-              height: 320,
-              decoration:
-                  BoxDecoration(
-                shape:
-                    BoxShape.circle,
-                color:
-                    Colors
-                        .cyanAccent
-                        .withOpacity(
-                  0.05,
-                ),
-              ),
+            child: cyberOrb(
+              340,
+              Colors.cyanAccent,
             ),
           ),
 
           Positioned(
-            bottom: -150,
+            bottom: -180,
             left: -120,
-            child: Container(
-              width: 340,
-              height: 340,
-              decoration:
-                  BoxDecoration(
-                shape:
-                    BoxShape.circle,
-                color:
-                    Colors
-                        .blueAccent
-                        .withOpacity(
-                  0.05,
-                ),
-              ),
+            child: cyberOrb(
+              420,
+              Colors.blueAccent,
+            ),
+          ),
+
+          Positioned(
+            top: 280,
+            left: 200,
+            child: cyberOrb(
+              180,
+              Colors.purpleAccent,
             ),
           ),
 
@@ -190,24 +165,27 @@ class _HomePageState
             children: [
               if (!isMobile)
                 Container(
-                  width: 290,
+                  width: 300,
                   margin:
                       const EdgeInsets.all(
                     18,
                   ),
+
                   child:
                       ClipRRect(
                     borderRadius:
                         BorderRadius.circular(
-                      30,
+                      32,
                     ),
+
                     child:
                         BackdropFilter(
                       filter:
                           ImageFilter.blur(
-                        sigmaX: 10,
-                        sigmaY: 10,
+                        sigmaX: 20,
+                        sigmaY: 20,
                       ),
+
                       child:
                           Container(
                         decoration:
@@ -218,20 +196,23 @@ class _HomePageState
                                   .withOpacity(
                             0.05,
                           ),
+
                           borderRadius:
                               BorderRadius.circular(
-                            30,
+                            32,
                           ),
+
                           border:
                               Border.all(
                             color:
                                 Colors
-                                    .white
+                                    .cyanAccent
                                     .withOpacity(
-                              0.08,
+                              0.15,
                             ),
                           ),
                         ),
+
                         child:
                             buildSidebar(
                           false,
@@ -243,10 +224,21 @@ class _HomePageState
 
               Expanded(
                 child:
-                    IndexedStack(
-                  index:
+                    AnimatedSwitcher(
+                  duration:
+                      const Duration(
+                    milliseconds: 250,
+                  ),
+
+                  child:
+                      IndexedStack(
+                    key: ValueKey(
                       selectedIndex,
-                  children: pages,
+                    ),
+                    index:
+                        selectedIndex,
+                    children: pages,
+                  ),
                 ),
               ),
             ],
@@ -265,15 +257,19 @@ class _HomePageState
           height: 45,
         ),
 
+        // LOGO
+
         Container(
           padding:
               const EdgeInsets.all(
             20,
           ),
+
           decoration:
               BoxDecoration(
             shape:
                 BoxShape.circle,
+
             gradient:
                 const LinearGradient(
               colors: [
@@ -281,31 +277,34 @@ class _HomePageState
                 Colors.blueAccent,
               ],
             ),
+
             boxShadow: [
               BoxShadow(
-                color: Colors
-                    .cyanAccent
-                    .withOpacity(
-                  0.30,
+                color:
+                    Colors.cyanAccent
+                        .withOpacity(
+                  0.45,
                 ),
-                blurRadius: 20,
+                blurRadius: 30,
               ),
             ],
           ),
+
           child: const Icon(
             Icons
                 .local_hospital_rounded,
-            size: 42,
+            size: 44,
             color: Colors.white,
           ),
         ),
 
         const SizedBox(
-          height: 20,
+          height: 22,
         ),
 
         const Text(
-          'Clinical System',
+          'Clinical Cyber',
+
           style: TextStyle(
             color: Colors.white,
             fontSize: 28,
@@ -319,14 +318,14 @@ class _HomePageState
         ),
 
         Text(
-          'Cyber Dashboard',
+          'AI Medical Dashboard',
+
           style: TextStyle(
             color:
                 Colors.white
                     .withOpacity(
               0.55,
             ),
-            fontSize: 14,
           ),
         ),
 
@@ -334,9 +333,12 @@ class _HomePageState
           height: 40,
         ),
 
+        // MENU
+
         Expanded(
           child: ListView.builder(
             itemCount: menu.length,
+
             itemBuilder:
                 (context, index) {
               final item =
@@ -350,16 +352,23 @@ class _HomePageState
                 padding:
                     const EdgeInsets.symmetric(
                   horizontal: 14,
-                  vertical: 7,
+                  vertical: 8,
                 ),
+
                 child:
                     AnimatedContainer(
                   duration:
                       const Duration(
-                    milliseconds: 150,
+                    milliseconds: 220,
                   ),
+
                   decoration:
                       BoxDecoration(
+                    borderRadius:
+                        BorderRadius.circular(
+                      22,
+                    ),
+
                     gradient:
                         selected
                             ? const LinearGradient(
@@ -373,15 +382,13 @@ class _HomePageState
                                 ],
                               )
                             : null,
+
                     color:
                         selected
                             ? null
                             : Colors
                                 .transparent,
-                    borderRadius:
-                        BorderRadius.circular(
-                      20,
-                    ),
+
                     boxShadow:
                         selected
                             ? [
@@ -389,32 +396,63 @@ class _HomePageState
                                   color: Colors
                                       .cyanAccent
                                       .withOpacity(
-                                    0.18,
+                                    0.25,
                                   ),
                                   blurRadius:
-                                      16,
+                                      22,
                                 ),
                               ]
                             : [],
                   ),
-                  child: ListTile(
+
+                  child:
+                      ListTile(
                     dense: true,
-                    leading: Icon(
-                      item['icon'],
-                      color:
-                          Colors.white,
+
+                    leading:
+                        Container(
+                      padding:
+                          const EdgeInsets.all(
+                        10,
+                      ),
+
+                      decoration:
+                          BoxDecoration(
+                        borderRadius:
+                            BorderRadius.circular(
+                          14,
+                        ),
+
+                        color:
+                            Colors
+                                .white
+                                .withOpacity(
+                          0.10,
+                        ),
+                      ),
+
+                      child: Icon(
+                        item['icon'],
+                        color:
+                            Colors
+                                .white,
+                      ),
                     ),
+
                     title: Text(
                       item['title'],
+
                       style:
                           const TextStyle(
                         color:
-                            Colors.white,
+                            Colors
+                                .white,
                         fontWeight:
                             FontWeight
                                 .w600,
                       ),
                     ),
+
                     onTap: () {
                       setState(() {
                         selectedIndex =
@@ -443,12 +481,15 @@ class _HomePageState
             Icons.dark_mode_rounded,
             color: Colors.white,
           ),
+
           title: const Text(
             'Theme',
+
             style: TextStyle(
               color: Colors.white,
             ),
           ),
+
           onTap: () {
             Provider.of<
                 ThemeProvider>(
@@ -463,12 +504,15 @@ class _HomePageState
             Icons.logout_rounded,
             color: Colors.white,
           ),
+
           title: const Text(
             'Logout',
+
             style: TextStyle(
               color: Colors.white,
             ),
           ),
+
           onTap: () async {
             await AuthService.logout();
 
@@ -476,23 +520,45 @@ class _HomePageState
 
             Navigator.pushAndRemoveUntil(
               context,
+
               MaterialPageRoute(
                 builder:
                     (_) =>
                         const LoginPage(),
               ),
+
               (route) => false,
             );
           },
         ),
 
         const SizedBox(
-          height: 16,
+          height: 18,
         ),
       ],
     );
   }
+
+  Widget cyberOrb(
+    double size,
+    Color color,
+  ) {
+    return Container(
+      width: size,
+      height: size,
+
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color:
+            color.withOpacity(0.08),
+      ),
+    );
+  }
 }
+
+// =====================================================
+// DASHBOARD
+// =====================================================
 
 class DashboardContent
     extends StatelessWidget {
@@ -520,50 +586,61 @@ class DashboardContent
 
     return SingleChildScrollView(
       padding: EdgeInsets.all(
-        isMobile ? 18 : 28,
+        isMobile ? 18 : 30,
       ),
+
       child: Column(
         crossAxisAlignment:
             CrossAxisAlignment.start,
+
         children: [
+          // HERO
+
           ClipRRect(
             borderRadius:
                 BorderRadius.circular(
-              35,
+              36,
             ),
+
             child: BackdropFilter(
               filter:
                   ImageFilter.blur(
-                sigmaX: 10,
-                sigmaY: 10,
+                sigmaX: 18,
+                sigmaY: 18,
               ),
+
               child: Container(
                 width: double.infinity,
+
                 padding:
                     EdgeInsets.all(
                   isMobile
                       ? 24
                       : 38,
                 ),
+
                 decoration:
                     BoxDecoration(
                   borderRadius:
                       BorderRadius.circular(
-                    35,
+                    36,
                   ),
+
                   color:
                       Colors.white
                           .withOpacity(
                     0.05,
                   ),
+
                   border: Border.all(
                     color:
-                        Colors.white
+                        Colors.cyanAccent
                             .withOpacity(
-                      0.08,
+                      0.15,
                     ),
                   ),
                 ),
+
                 child:
                     isMobile
                         ? buildMobileHero()
@@ -577,10 +654,11 @@ class DashboardContent
           ),
 
           const Text(
-            'Analytics',
+            'Cyber Analytics',
+
             style: TextStyle(
               color: Colors.white,
-              fontSize: 30,
+              fontSize: 32,
               fontWeight:
                   FontWeight.bold,
             ),
@@ -591,12 +669,13 @@ class DashboardContent
           ),
 
           Text(
-            'Realtime cyber analytics',
+            'Realtime futuristic medical analytics',
+
             style: TextStyle(
               color:
                   Colors.white
                       .withOpacity(
-                0.6,
+                0.60,
               ),
             ),
           ),
@@ -608,46 +687,53 @@ class DashboardContent
           GridView.count(
             crossAxisCount:
                 crossAxisCount,
+
             shrinkWrap: true,
+
             physics:
                 const NeverScrollableScrollPhysics(),
-            crossAxisSpacing:
-                18,
+
+            crossAxisSpacing: 18,
             mainAxisSpacing: 18,
+
             childAspectRatio:
                 isMobile
-                    ? 1.25
-                    : 1.30,
+                    ? 1.05
+                    : 1.18,
+
             children: const [
               DashboardCard(
-                title:
-                    'Total Drugs',
+                title: 'Total Drugs',
                 value: '128',
-                icon: Icons
-                    .medication_rounded,
+                icon:
+                    Icons.medication_rounded,
                 color: Colors.cyan,
               ),
+
               DashboardCard(
                 title: 'Patients',
                 value: '542',
-                icon: Icons
-                    .people_alt_rounded,
+                icon:
+                    Icons.people_alt_rounded,
                 color: Colors.orange,
               ),
+
               DashboardCard(
                 title:
                     'Prescriptions',
                 value: '1,240',
-                icon: Icons
-                    .receipt_long_rounded,
+                icon:
+                    Icons
+                        .receipt_long_rounded,
                 color: Colors.green,
               ),
+
               DashboardCard(
                 title:
                     'Clinical Notes',
                 value: '84',
-                icon: Icons
-                    .note_alt_rounded,
+                icon:
+                    Icons.note_alt_rounded,
                 color: Colors.purple,
               ),
             ],
@@ -665,9 +751,11 @@ class DashboardContent
             crossAxisAlignment:
                 CrossAxisAlignment
                     .start,
+
             children: [
               const Text(
-                'Clinical Dashboard',
+                'Clinical Cyber Dashboard',
+
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 42,
@@ -681,13 +769,15 @@ class DashboardContent
               ),
 
               Text(
-                'Modern healthcare cyber management system.',
+                'Futuristic AI-powered healthcare management system.',
+
                 style: TextStyle(
                   color:
                       Colors.white
                           .withOpacity(
                     0.75,
                   ),
+
                   fontSize: 16,
                 ),
               ),
@@ -697,8 +787,9 @@ class DashboardContent
               ),
 
               Wrap(
-                spacing: 15,
-                runSpacing: 15,
+                spacing: 14,
+                runSpacing: 14,
+
                 children: [
                   quickButton(
                     icon:
@@ -706,15 +797,17 @@ class DashboardContent
                     title:
                         'Prescription',
                   ),
+
                   quickButton(
-                    icon: Icons
-                        .search_rounded,
+                    icon:
+                        Icons.search_rounded,
                     title:
                         'Find Drug',
                   ),
+
                   quickButton(
-                    icon: Icons
-                        .people_alt_rounded,
+                    icon:
+                        Icons.people_alt_rounded,
                     title:
                         'Patients',
                   ),
@@ -731,19 +824,29 @@ class DashboardContent
         Container(
           width: 180,
           height: 180,
+
           decoration:
               BoxDecoration(
             shape:
                 BoxShape.circle,
-            color:
+
+            gradient:
+                LinearGradient(
+              colors: [
                 Colors.cyanAccent
                     .withOpacity(
-              0.08,
+                  0.18,
+                ),
+                Colors.blueAccent
+                    .withOpacity(
+                  0.08,
+                ),
+              ],
             ),
           ),
+
           child: const Icon(
-            Icons
-                .local_hospital_rounded,
+            Icons.local_hospital,
             size: 120,
             color: Colors.white24,
           ),
@@ -756,9 +859,11 @@ class DashboardContent
     return Column(
       crossAxisAlignment:
           CrossAxisAlignment.start,
+
       children: [
         const Text(
-          'Clinical Dashboard',
+          'Clinical Cyber Dashboard',
+
           style: TextStyle(
             color: Colors.white,
             fontSize: 30,
@@ -772,7 +877,8 @@ class DashboardContent
         ),
 
         Text(
-          'Modern healthcare cyber management system.',
+          'Futuristic AI-powered healthcare management system.',
+
           style: TextStyle(
             color:
                 Colors.white
@@ -789,6 +895,7 @@ class DashboardContent
         Wrap(
           spacing: 10,
           runSpacing: 10,
+
           children: [
             quickButton(
               icon:
@@ -796,6 +903,7 @@ class DashboardContent
               title:
                   'Prescription',
             ),
+
             quickButton(
               icon:
                   Icons.search_rounded,
@@ -809,6 +917,10 @@ class DashboardContent
   }
 }
 
+// =====================================================
+// QUICK BUTTON
+// =====================================================
+
 Widget quickButton({
   required IconData icon,
   required String title,
@@ -819,27 +931,29 @@ Widget quickButton({
       horizontal: 18,
       vertical: 14,
     ),
-    decoration:
-        BoxDecoration(
+
+    decoration: BoxDecoration(
       borderRadius:
           BorderRadius.circular(
         18,
       ),
+
       border: Border.all(
         color:
             Colors.cyanAccent
-                .withOpacity(
-          0.35,
-        ),
+                .withOpacity(0.25),
       ),
+
       color:
           Colors.white.withOpacity(
         0.04,
       ),
     ),
+
     child: Row(
       mainAxisSize:
           MainAxisSize.min,
+
       children: [
         Icon(
           icon,
@@ -853,6 +967,7 @@ Widget quickButton({
 
         Text(
           title,
+
           style: const TextStyle(
             color: Colors.white,
             fontWeight:
@@ -863,6 +978,10 @@ Widget quickButton({
     ),
   );
 }
+
+// =====================================================
+// DASHBOARD CARD
+// =====================================================
 
 class DashboardCard
     extends StatefulWidget {
@@ -905,6 +1024,7 @@ class _DashboardCardState
           });
         }
       },
+
       onExit: (_) {
         if (!isMobile) {
           setState(() {
@@ -912,30 +1032,34 @@ class _DashboardCardState
           });
         }
       },
+
       child:
           AnimatedContainer(
         duration:
             const Duration(
-          milliseconds: 180,
+          milliseconds: 220,
         ),
+
         transform:
             Matrix4.identity()
               ..scale(
                 hover ? 1.02 : 1,
               ),
+
         decoration:
             BoxDecoration(
           borderRadius:
               BorderRadius.circular(
             30,
           ),
+
           gradient:
               LinearGradient(
             begin:
                 Alignment.topLeft,
             end:
-                Alignment
-                    .bottomRight,
+                Alignment.bottomRight,
+
             colors: [
               widget.color
                   .withOpacity(
@@ -947,13 +1071,15 @@ class _DashboardCardState
               ),
             ],
           ),
+
           boxShadow: [
             BoxShadow(
-              color: widget.color
-                  .withOpacity(
-                0.16,
+              color:
+                  widget.color
+                      .withOpacity(
+                0.20,
               ),
-              blurRadius: 22,
+              blurRadius: 24,
               offset:
                   const Offset(
                 0,
@@ -962,35 +1088,46 @@ class _DashboardCardState
             ),
           ],
         ),
+
         child: Padding(
           padding:
               const EdgeInsets.all(
             24,
           ),
+
           child: Column(
             crossAxisAlignment:
                 CrossAxisAlignment
                     .start,
+
             children: [
               Row(
+                crossAxisAlignment:
+                    CrossAxisAlignment
+                        .start,
+
                 children: [
                   Container(
                     padding:
                         const EdgeInsets.all(
                       14,
                     ),
+
                     decoration:
                         BoxDecoration(
-                      color: Colors
-                          .white
-                          .withOpacity(
+                      color:
+                          Colors
+                              .white
+                              .withOpacity(
                         0.12,
                       ),
+
                       borderRadius:
                           BorderRadius.circular(
                         18,
                       ),
                     ),
+
                     child: Icon(
                       widget.icon,
                       color:
@@ -1005,17 +1142,21 @@ class _DashboardCardState
                     crossAxisAlignment:
                         CrossAxisAlignment
                             .end,
+
                     children: [
                       Text(
                         '+12.5%',
-                        style:
-                            TextStyle(
-                          color: Colors
-                              .greenAccent
-                              .shade100,
+
+                        style: TextStyle(
+                          color:
+                              Colors
+                                  .greenAccent
+                                  .shade100,
+
                           fontWeight:
                               FontWeight
                                   .bold,
+
                           fontSize:
                               isMobile
                                   ? 14
@@ -1029,13 +1170,15 @@ class _DashboardCardState
 
                       Text(
                         'vs last month',
-                        style:
-                            TextStyle(
-                          color: Colors
-                              .white
-                              .withOpacity(
+
+                        style: TextStyle(
+                          color:
+                              Colors
+                                  .white
+                                  .withOpacity(
                             0.6,
                           ),
+
                           fontSize: 12,
                         ),
                       ),
@@ -1048,18 +1191,23 @@ class _DashboardCardState
 
               Text(
                 widget.value,
+
                 maxLines: 1,
                 overflow:
                     TextOverflow
                         .ellipsis,
+
                 style: TextStyle(
                   color: Colors.white,
+
                   fontWeight:
                       FontWeight.bold,
+
                   fontSize:
                       isMobile
-                          ? 28
-                          : 44,
+                          ? 34
+                          : 48,
+
                   height: 1,
                 ),
               ),
@@ -1070,20 +1218,24 @@ class _DashboardCardState
 
               Text(
                 widget.title,
+
                 maxLines: 1,
                 overflow:
                     TextOverflow
                         .ellipsis,
+
                 style: TextStyle(
                   color:
                       Colors.white
                           .withOpacity(
                     0.85,
                   ),
+
                   fontSize:
                       isMobile
                           ? 15
                           : 18,
+
                   fontWeight:
                       FontWeight.w500,
                 ),

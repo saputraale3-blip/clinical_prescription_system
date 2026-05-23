@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 import '../services/supabase_service.dart';
@@ -12,7 +14,6 @@ class DrugDatabasePage extends StatefulWidget {
 
 class _DrugDatabasePageState
     extends State<DrugDatabasePage> {
-
   List<Map<String, dynamic>> drugs = [];
 
   List<Map<String, dynamic>>
@@ -32,14 +33,12 @@ class _DrugDatabasePageState
     loadDrugs();
   }
 
-  // =========================
+  // =====================================================
   // LOAD DRUGS
-  // =========================
+  // =====================================================
 
   Future<void> loadDrugs() async {
-
     try {
-
       final data =
           await SupabaseService
               .getDrugs();
@@ -47,8 +46,10 @@ class _DrugDatabasePageState
       drugs = data;
 
       categories = drugs
-          .map((e) =>
-              e['category'].toString())
+          .map(
+            (e) => e['category']
+                .toString(),
+          )
           .toSet()
           .toList();
 
@@ -64,59 +65,43 @@ class _DrugDatabasePageState
       setState(() {
         isLoading = false;
       });
-    }
-
-    catch (e) {
-
+    } catch (e) {
       setState(() {
         isLoading = false;
       });
     }
   }
 
-  // =========================
-  // FILTER DRUG
-  // =========================
+  // =====================================================
+  // FILTER
+  // =====================================================
 
   void filterDrugs() {
-
     filteredDrugs =
         drugs.where((drug) {
-
-      final categoryMatch =
-          drug['category']
-                  .toString()
-                  .toLowerCase() ==
-
-              selectedCategory!
-                  .toLowerCase();
-
-      return categoryMatch;
-
+      return drug['category']
+              .toString()
+              .toLowerCase() ==
+          selectedCategory!
+              .toLowerCase();
     }).toList();
 
     if (filteredDrugs.isNotEmpty) {
-
       selectedDrug =
           filteredDrugs.first;
-    }
-
-    else {
-
+    } else {
       selectedDrug = null;
     }
 
     setState(() {});
   }
 
-  // =========================
+  // =====================================================
   // SEARCH DIALOG
-  // =========================
+  // =====================================================
 
   Future<void> showDrugSearch() async {
-
-    TextEditingController
-        searchController =
+    final searchController =
         TextEditingController();
 
     List<Map<String, dynamic>>
@@ -125,164 +110,281 @@ class _DrugDatabasePageState
     );
 
     await showDialog(
-
       context: context,
-
+      barrierColor:
+          Colors.black54,
       builder: (context) {
-
         return StatefulBuilder(
-
           builder:
               (context,
                   setStateDialog) {
-
-            return AlertDialog(
-
+            return Dialog(
               backgroundColor:
-                  const Color(
-                0xFF1E1E1E,
-              ),
+                  Colors.transparent,
 
-              title: const Text(
-
-                'Search Drug',
-
-                style: TextStyle(
-                  color: Colors.white,
+              child: ClipRRect(
+                borderRadius:
+                    BorderRadius.circular(
+                  30,
                 ),
-              ),
 
-              content: SizedBox(
+                child:
+                    BackdropFilter(
+                  filter:
+                      ImageFilter.blur(
+                    sigmaX: 18,
+                    sigmaY: 18,
+                  ),
 
-                width: double.maxFinite,
-
-                height: 400,
-
-                child: Column(
-
-                  children: [
-
-                    TextField(
-
-                      controller:
-                          searchController,
-
-                      style:
-                          const TextStyle(
-                        color:
-                            Colors.white,
-                      ),
-
-                      decoration:
-                          InputDecoration(
-
-                        hintText:
-                            'Search drug...',
-
-                        hintStyle:
-                            const TextStyle(
-                          color:
-                              Colors.white54,
-                        ),
-
-                        filled: true,
-
-                        fillColor:
-                            Colors.black26,
-
-                        border:
-                            OutlineInputBorder(
-
-                          borderRadius:
-                              BorderRadius.circular(
-                            12,
-                          ),
-                        ),
-                      ),
-
-                      onChanged:
-                          (value) {
-
-                        setStateDialog(() {
-
-                          tempList =
-                              filteredDrugs
-                                  .where(
-                                      (drug) {
-
-                            final text =
-                                '${drug['name']} ${drug['generic_name']} ${drug['dose']}'
-                                    .toLowerCase();
-
-                            return text
-                                .contains(
-                              value
-                                  .toLowerCase(),
-                            );
-
-                          }).toList();
-                        });
-                      },
+                  child: Container(
+                    padding:
+                        const EdgeInsets.all(
+                      22,
                     ),
 
-                    const SizedBox(
-                        height: 15),
+                    decoration:
+                        BoxDecoration(
+                      borderRadius:
+                          BorderRadius.circular(
+                        30,
+                      ),
 
-                    Expanded(
+                      color: Colors
+                          .white
+                          .withOpacity(
+                        0.06,
+                      ),
 
-                      child:
-                          ListView.builder(
+                      border:
+                          Border.all(
+                        color: Colors
+                            .white
+                            .withOpacity(
+                          0.08,
+                        ),
+                      ),
+                    ),
 
-                        itemCount:
-                            tempList.length,
+                    child: Column(
+                      mainAxisSize:
+                          MainAxisSize.min,
 
-                        itemBuilder:
-                            (context,
-                                index) {
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.search_rounded,
+                              color:
+                                  Colors.cyanAccent,
+                            ),
 
-                          final drug =
-                              tempList[index];
+                            const SizedBox(
+                              width: 10,
+                            ),
 
-                          return ListTile(
-
-                            title: Text(
-
-                              '${drug['name']} (${drug['dose']})',
-
+                            const Text(
+                              'Search Drug',
                               style:
-                                  const TextStyle(
+                                  TextStyle(
                                 color:
                                     Colors.white,
+                                fontSize:
+                                    22,
+                                fontWeight:
+                                    FontWeight.bold,
                               ),
                             ),
+                          ],
+                        ),
 
-                            subtitle: Text(
+                        const SizedBox(
+                          height: 22,
+                        ),
 
-                              '${drug['generic_name']}',
+                        TextField(
+                          controller:
+                              searchController,
 
-                              style:
-                                  const TextStyle(
-                                color:
-                                    Colors.white70,
-                              ),
-                            ),
+                          style:
+                              const TextStyle(
+                            color:
+                                Colors.white,
+                          ),
 
-                            onTap: () {
+                          decoration:
+                              cyberInput(
+                            'Search medicine...',
+                          ),
 
-                              setState(() {
+                          onChanged:
+                              (value) {
+                            setStateDialog(
+                              () {
+                                tempList =
+                                    filteredDrugs
+                                        .where(
+                                  (drug) {
+                                    final text =
+                                        '${drug['name']} ${drug['generic_name']} ${drug['dose']}'
+                                            .toLowerCase();
 
-                                selectedDrug =
-                                    drug;
-                              });
+                                    return text
+                                        .contains(
+                                      value
+                                          .toLowerCase(),
+                                    );
+                                  },
+                                ).toList();
+                              },
+                            );
+                          },
+                        ),
 
-                              Navigator.pop(
-                                  context);
+                        const SizedBox(
+                          height: 20,
+                        ),
+
+                        SizedBox(
+                          height: 420,
+
+                          child:
+                              ListView.builder(
+                            itemCount:
+                                tempList
+                                    .length,
+
+                            itemBuilder:
+                                (
+                              context,
+                              index,
+                            ) {
+                              final drug =
+                                  tempList[
+                                      index];
+
+                              return Container(
+                                margin:
+                                    const EdgeInsets.only(
+                                  bottom:
+                                      12,
+                                ),
+
+                                decoration:
+                                    BoxDecoration(
+                                  borderRadius:
+                                      BorderRadius.circular(
+                                    20,
+                                  ),
+
+                                  color: Colors
+                                      .white
+                                      .withOpacity(
+                                    0.04,
+                                  ),
+                                ),
+
+                                child:
+                                    ListTile(
+                                  contentPadding:
+                                      const EdgeInsets.symmetric(
+                                    horizontal:
+                                        18,
+                                    vertical:
+                                        10,
+                                  ),
+
+                                  leading:
+                                      Container(
+                                    padding:
+                                        const EdgeInsets.all(
+                                      10,
+                                    ),
+
+                                    decoration:
+                                        BoxDecoration(
+                                      borderRadius:
+                                          BorderRadius.circular(
+                                        14,
+                                      ),
+
+                                      gradient:
+                                          const LinearGradient(
+                                        colors: [
+                                          Colors
+                                              .cyanAccent,
+                                          Colors
+                                              .blueAccent,
+                                        ],
+                                      ),
+                                    ),
+
+                                    child:
+                                        const Icon(
+                                      Icons
+                                          .medication_rounded,
+                                      color:
+                                          Colors.white,
+                                    ),
+                                  ),
+
+                                  title:
+                                      Text(
+                                    '${drug['name']} (${drug['dose']})',
+
+                                    style:
+                                        const TextStyle(
+                                      color:
+                                          Colors.white,
+                                      fontWeight:
+                                          FontWeight.bold,
+                                    ),
+                                  ),
+
+                                  subtitle:
+                                      Padding(
+                                    padding:
+                                        const EdgeInsets.only(
+                                      top:
+                                          5,
+                                    ),
+
+                                    child:
+                                        Text(
+                                      drug['generic_name'] ??
+                                          '-',
+
+                                      style:
+                                          TextStyle(
+                                        color: Colors
+                                            .white
+                                            .withOpacity(
+                                          0.65,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+
+                                  onTap:
+                                      () {
+                                    setState(
+                                      () {
+                                        selectedDrug =
+                                            drug;
+                                      },
+                                    );
+
+                                    Navigator.pop(
+                                      context,
+                                    );
+                                  },
+                                ),
+                              );
                             },
-                          );
-                        },
-                      ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             );
@@ -292,87 +394,193 @@ class _DrugDatabasePageState
     );
   }
 
-  // =========================
+  // =====================================================
+  // PRESCRIPTION BUILDER
+  // =====================================================
+
+  String buildPrescription() {
+    if (selectedDrug == null) {
+      return '-';
+    }
+
+    final drug =
+        selectedDrug!;
+
+    final dosageForm =
+        drug['dosage_form']
+            .toString()
+            .toLowerCase();
+
+    final frequency =
+        drug['frequency_signa'] ??
+            '-';
+
+    final unit =
+        drug['signa_unit'] ??
+            '-';
+
+    final note =
+        drug['signa_note'] ??
+            '';
+
+    final qty =
+        drug['qty_default']
+            ?.toString() ??
+            '10';
+
+    String formText = '';
+
+    if (dosageForm.contains(
+        'tablet')) {
+      formText = 'Tab';
+    } else if (dosageForm.contains(
+        'capsule')) {
+      formText = 'Caps';
+    } else if (dosageForm.contains(
+        'syrup')) {
+      formText = 'Fl';
+    } else if (dosageForm.contains(
+        'cream')) {
+      formText = 'Ung';
+    } else {
+      formText = dosageForm;
+    }
+
+    return '''
+
+R/
+
+${drug['name']} ${drug['dose']}
+
+$formText No. $qty
+
+S $frequency $unit I $note
+
+''';
+  }
+
+  // =====================================================
   // INPUT STYLE
-  // =========================
+  // =====================================================
 
-  InputDecoration inputStyle(
+  InputDecoration cyberInput(
       String label) {
-
     return InputDecoration(
-
       labelText: label,
 
       labelStyle:
-          const TextStyle(
-        color: Colors.white70,
+          TextStyle(
+        color: Colors.white
+            .withOpacity(
+          0.7,
+        ),
       ),
 
       filled: true,
 
       fillColor:
-          const Color(0xFF1E1E1E),
+          Colors.white
+              .withOpacity(
+        0.05,
+      ),
 
       border:
           OutlineInputBorder(
-
         borderRadius:
             BorderRadius.circular(
-          14,
+          18,
+        ),
+
+        borderSide:
+            BorderSide(
+          color: Colors.white
+              .withOpacity(
+            0.08,
+          ),
+        ),
+      ),
+
+      enabledBorder:
+          OutlineInputBorder(
+        borderRadius:
+            BorderRadius.circular(
+          18,
+        ),
+
+        borderSide:
+            BorderSide(
+          color: Colors.white
+              .withOpacity(
+            0.08,
+          ),
+        ),
+      ),
+
+      focusedBorder:
+          OutlineInputBorder(
+        borderRadius:
+            BorderRadius.circular(
+          18,
+        ),
+
+        borderSide:
+            const BorderSide(
+          color:
+              Colors.cyanAccent,
         ),
       ),
     );
   }
 
+  // =====================================================
+  // UI
+  // =====================================================
+
   @override
   Widget build(BuildContext context) {
+    final width =
+        MediaQuery.of(context)
+            .size
+            .width;
+
+    final bool isMobile =
+        width < 700;
 
     return Scaffold(
-
       backgroundColor:
-          const Color(0xFF121212),
-
-      appBar: AppBar(
-
-        title:
-            const Text(
-          'Drug Database',
-        ),
-
-        backgroundColor:
-            Colors.black,
-      ),
+          Colors.transparent,
 
       body: isLoading
-
           ? const Center(
               child:
-                  CircularProgressIndicator(),
+                  CircularProgressIndicator(
+                color:
+                    Colors.cyanAccent,
+              ),
             )
-
           : SingleChildScrollView(
-
               padding:
-                  const EdgeInsets.all(
-                20,
+                  EdgeInsets.all(
+                isMobile
+                    ? 16
+                    : 26,
               ),
 
               child: Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment
+                        .start,
 
                 children: [
-
-                  // =========================
-                  // CATEGORY
-                  // =========================
-
                   DropdownButtonFormField<
                       String>(
-
                     value:
                         selectedCategory,
 
                     dropdownColor:
-                        Colors.black,
+                        const Color(
+                      0xff10192d,
+                    ),
 
                     style:
                         const TextStyle(
@@ -381,27 +589,27 @@ class _DrugDatabasePageState
                     ),
 
                     decoration:
-                        inputStyle(
+                        cyberInput(
                       'Category',
                     ),
 
                     items:
                         categories.map(
-                            (e) {
+                      (e) {
+                        return DropdownMenuItem(
+                          value: e,
 
-                      return DropdownMenuItem(
+                          child: Text(
+                            e,
+                          ),
+                        );
+                      },
+                    ).toList(),
 
-                        value: e,
-
-                        child: Text(e),
-                      );
-                    }).toList(),
-
-                    onChanged: (value) {
-
+                    onChanged:
+                        (value) {
                       if (value !=
                           null) {
-
                         selectedCategory =
                             value;
 
@@ -411,83 +619,85 @@ class _DrugDatabasePageState
                   ),
 
                   const SizedBox(
-                      height: 20),
-
-                  // =========================
-                  // SEARCHABLE DRUG
-                  // =========================
+                    height: 20,
+                  ),
 
                   InkWell(
+                    borderRadius:
+                        BorderRadius.circular(
+                      20,
+                    ),
 
                     onTap:
                         showDrugSearch,
 
-                    child: Container(
-
+                    child:
+                        Container(
                       width:
                           double.infinity,
 
                       padding:
-                          const EdgeInsets
-                              .symmetric(
-
-                        horizontal: 15,
-                        vertical: 18,
+                          const EdgeInsets.symmetric(
+                        horizontal:
+                            18,
+                        vertical:
+                            18,
                       ),
 
                       decoration:
                           BoxDecoration(
-
-                        color:
-                            const Color(
-                          0xFF1E1E1E,
-                        ),
-
                         borderRadius:
                             BorderRadius.circular(
-                          14,
+                          20,
                         ),
 
-                        border: Border.all(
-                          color:
-                              Colors.white24,
+                        color: Colors
+                            .white
+                            .withOpacity(
+                          0.05,
+                        ),
+
+                        border:
+                            Border.all(
+                          color: Colors
+                              .white
+                              .withOpacity(
+                            0.08,
+                          ),
                         ),
                       ),
 
                       child: Row(
-
-                        mainAxisAlignment:
-                            MainAxisAlignment
-                                .spaceBetween,
-
                         children: [
+                          const Icon(
+                            Icons
+                                .search_rounded,
+                            color:
+                                Colors.cyanAccent,
+                          ),
+
+                          const SizedBox(
+                            width: 14,
+                          ),
 
                           Expanded(
-
                             child: Text(
-
-                              selectedDrug ==
-                                      null
-
-                                  ? 'Select Drug'
-
+                              selectedDrug == null
+                                  ? 'Search Drug'
                                   : '${selectedDrug!['name']} (${selectedDrug!['dose']})',
+
+                              overflow:
+                                  TextOverflow
+                                      .ellipsis,
 
                               style:
                                   const TextStyle(
-
                                 color:
                                     Colors.white,
+                                fontWeight:
+                                    FontWeight.w600,
                               ),
                             ),
-                          ),
-
-                          const Icon(
-
-                            Icons.search,
-
-                            color:
-                                Colors.white70,
                           ),
                         ],
                       ),
@@ -495,237 +705,13 @@ class _DrugDatabasePageState
                   ),
 
                   const SizedBox(
-                      height: 25),
-
-                  // =========================
-                  // DETAIL
-                  // =========================
+                    height: 28,
+                  ),
 
                   if (selectedDrug !=
                       null)
-
-                    Card(
-
-                      color:
-                          const Color(
-                        0xFF1E1E1E,
-                      ),
-
-                      shape:
-                          RoundedRectangleBorder(
-
-                        borderRadius:
-                            BorderRadius.circular(
-                          18,
-                        ),
-                      ),
-
-                      child:
-                          Padding(
-
-                        padding:
-                            const EdgeInsets
-                                .all(
-                          20,
-                        ),
-
-                        child:
-                            Column(
-
-                          crossAxisAlignment:
-                              CrossAxisAlignment
-                                  .start,
-
-                          children: [
-
-                            Text(
-
-                              selectedDrug![
-                                      'name']
-                                  .toString(),
-
-                              style:
-                                  const TextStyle(
-
-                                color:
-                                    Colors.cyanAccent,
-
-                                fontSize:
-                                    24,
-
-                                fontWeight:
-                                    FontWeight.bold,
-                              ),
-                            ),
-
-                            const SizedBox(
-                                height:
-                                    20),
-
-                            buildDetailItem(
-
-                              'Generic Name',
-
-                              selectedDrug![
-                                          'generic_name'] ??
-                                      '-',
-                            ),
-
-                            buildDetailItem(
-
-                              'Category',
-
-                              selectedDrug![
-                                          'category'] ??
-                                      '-',
-                            ),
-
-                            buildDetailItem(
-
-                              'Dosage Form',
-
-                              selectedDrug![
-                                          'dosage_form'] ??
-                                      '-',
-                            ),
-
-                            buildDetailItem(
-
-                              'Dose',
-
-                              selectedDrug![
-                                          'dose'] ??
-                                      '-',
-                            ),
-
-                            buildDetailItem(
-
-                              'Frequency',
-
-                              selectedDrug![
-                                          'frequency'] ??
-                                      '-',
-                            ),
-
-                            const SizedBox(
-                                height:
-                                    25),
-
-                            const Text(
-
-                              'Prescription',
-
-                              style:
-                                  TextStyle(
-
-                                color:
-                                    Colors.orangeAccent,
-
-                                fontSize:
-                                    18,
-
-                                fontWeight:
-                                    FontWeight.bold,
-                              ),
-                            ),
-
-                            const SizedBox(
-                                height:
-                                    10),
-
-                            Container(
-
-                              width:
-                                  double.infinity,
-
-                              padding:
-                                  const EdgeInsets
-                                      .all(
-                                15,
-                              ),
-
-                              decoration:
-                                  BoxDecoration(
-
-                                color:
-                                    Colors
-                                        .black26,
-
-                                borderRadius:
-                                    BorderRadius.circular(
-                                  12,
-                                ),
-                              ),
-
-                              child: Text(
-
-                                selectedDrug![
-                                            'prescription_template'] ??
-                                        '-',
-
-                                style:
-                                    const TextStyle(
-
-                                  color:
-                                      Colors.white,
-
-                                  fontSize:
-                                      16,
-
-                                  height:
-                                      1.6,
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(
-                                height:
-                                    25),
-
-                            const Text(
-
-                              'Clinical Note',
-
-                              style:
-                                  TextStyle(
-
-                                color:
-                                    Colors.orangeAccent,
-
-                                fontSize:
-                                    18,
-
-                                fontWeight:
-                                    FontWeight.bold,
-                              ),
-                            ),
-
-                            const SizedBox(
-                                height:
-                                    10),
-
-                            Text(
-
-                              selectedDrug![
-                                          'note'] ??
-                                      '-',
-
-                              style:
-                                  const TextStyle(
-
-                                color:
-                                    Colors.white70,
-
-                                fontSize:
-                                    16,
-
-                                height:
-                                    1.6,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    buildDetailCard(
+                      isMobile,
                     ),
                 ],
               ),
@@ -733,67 +719,284 @@ class _DrugDatabasePageState
     );
   }
 
-  // =========================
+  // =====================================================
+  // DETAIL CARD
+  // =====================================================
+
+  Widget buildDetailCard(
+      bool isMobile) {
+    return ClipRRect(
+      borderRadius:
+          BorderRadius.circular(
+        32,
+      ),
+
+      child: BackdropFilter(
+        filter:
+            ImageFilter.blur(
+          sigmaX: 18,
+          sigmaY: 18,
+        ),
+
+        child: Container(
+          width: double.infinity,
+
+          padding:
+              EdgeInsets.all(
+            isMobile
+                ? 20
+                : 28,
+          ),
+
+          decoration:
+              BoxDecoration(
+            borderRadius:
+                BorderRadius.circular(
+              32,
+            ),
+
+            color: Colors
+                .white
+                .withOpacity(
+              0.05,
+            ),
+
+            border:
+                Border.all(
+              color: Colors
+                  .white
+                  .withOpacity(
+                0.08,
+              ),
+            ),
+          ),
+
+          child: Column(
+            crossAxisAlignment:
+                CrossAxisAlignment
+                    .start,
+
+            children: [
+              Text(
+                selectedDrug![
+                    'name'],
+
+                style:
+                    const TextStyle(
+                  color:
+                      Colors.cyanAccent,
+
+                  fontSize: 30,
+
+                  fontWeight:
+                      FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(
+                height: 24,
+              ),
+
+              buildDetailItem(
+                'Generic Name',
+                selectedDrug![
+                        'generic_name'] ??
+                    '-',
+              ),
+
+              buildDetailItem(
+                'Category',
+                selectedDrug![
+                        'category'] ??
+                    '-',
+              ),
+
+              buildDetailItem(
+                'Dosage Form',
+                selectedDrug![
+                        'dosage_form'] ??
+                    '-',
+              ),
+
+              buildDetailItem(
+                'Dose',
+                selectedDrug![
+                        'dose'] ??
+                    '-',
+              ),
+
+              buildDetailItem(
+                'Frequency',
+                selectedDrug![
+                        'frequency_signa'] ??
+                    '-',
+              ),
+
+              const SizedBox(
+                height: 28,
+              ),
+
+              const Text(
+                'Prescription',
+
+                style: TextStyle(
+                  color:
+                      Colors.orangeAccent,
+
+                  fontSize: 20,
+
+                  fontWeight:
+                      FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(
+                height: 14,
+              ),
+
+              Container(
+                width:
+                    double.infinity,
+
+                padding:
+                    const EdgeInsets.all(
+                  18,
+                ),
+
+                decoration:
+                    BoxDecoration(
+                  borderRadius:
+                      BorderRadius.circular(
+                    22,
+                  ),
+
+                  color: Colors
+                      .white
+                      .withOpacity(
+                    0.04,
+                  ),
+                ),
+
+                child: Text(
+                  buildPrescription(),
+
+                  style:
+                      const TextStyle(
+                    color:
+                        Colors.white,
+
+                    fontSize:
+                        16,
+
+                    height:
+                        1.8,
+                  ),
+                ),
+              ),
+
+              const SizedBox(
+                height: 28,
+              ),
+
+              const Text(
+                'Clinical Note',
+
+                style: TextStyle(
+                  color:
+                      Colors.orangeAccent,
+
+                  fontSize: 20,
+
+                  fontWeight:
+                      FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(
+                height: 14,
+              ),
+
+              Text(
+                selectedDrug![
+                        'note'] ??
+                    '-',
+
+                style:
+                    TextStyle(
+                  color: Colors
+                      .white
+                      .withOpacity(
+                    0.78,
+                  ),
+
+                  fontSize:
+                      16,
+
+                  height:
+                      1.8,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // =====================================================
   // DETAIL ITEM
-  // =========================
+  // =====================================================
 
   Widget buildDetailItem(
-
     String title,
-
     String value,
-
   ) {
-
     return Padding(
-
       padding:
           const EdgeInsets.only(
-        bottom: 14,
+        bottom: 16,
       ),
 
       child: Row(
-
         crossAxisAlignment:
-            CrossAxisAlignment.start,
+            CrossAxisAlignment
+                .start,
 
         children: [
-
           SizedBox(
-
-            width: 140,
+            width: 150,
 
             child: Text(
-
               '$title :',
 
               style:
-                  const TextStyle(
-
-                color:
-                    Colors.white70,
+                  TextStyle(
+                color: Colors
+                    .white
+                    .withOpacity(
+                  0.65,
+                ),
 
                 fontWeight:
                     FontWeight.bold,
 
-                fontSize: 16,
+                fontSize:
+                    15,
               ),
             ),
           ),
 
           Expanded(
-
             child: Text(
-
               value,
 
               style:
                   const TextStyle(
-
                 color:
                     Colors.white,
 
-                fontSize: 16,
+                fontSize:
+                    16,
               ),
             ),
           ),
