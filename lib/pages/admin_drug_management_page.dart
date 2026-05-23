@@ -1,9 +1,5 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-
-import '../services/supabase_service.dart';
-import 'edit_drug_page.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AdminDrugManagementPage extends StatefulWidget {
   const AdminDrugManagementPage({super.key});
@@ -15,6 +11,9 @@ class AdminDrugManagementPage extends StatefulWidget {
 
 class _AdminDrugManagementPageState
     extends State<AdminDrugManagementPage> {
+
+  final supabase = Supabase.instance.client;
+
   final TextEditingController searchController =
       TextEditingController();
 
@@ -25,6 +24,29 @@ class _AdminDrugManagementPageState
 
   String selectedFilter = 'All Drugs';
 
+  final List<String> categories = [
+
+    'Antibiotic',
+    'Analgesic',
+    'Antifungal',
+    'Antiviral',
+    'Antihistamine',
+    'Anti-inflammatory',
+    'Gastrointestinal',
+    'Supplement',
+    'Others',
+  ];
+
+  final List<String> dosageForms = [
+
+    'Tablet',
+    'Capsule',
+    'Syrup',
+    'Drops',
+    'Suspension',
+
+  ].toSet().toList();
+
   @override
   void initState() {
     super.initState();
@@ -32,161 +54,624 @@ class _AdminDrugManagementPageState
   }
 
   // =====================================================
-  // LOAD DRUGS
+  // NORMALIZE DOSAGE FORM
   // =====================================================
 
-  Future<void> loadDrugs() async {
-    try {
-      final data =
-          await SupabaseService.getDrugs();
+  String normalizeDosageForm(
+      String value) {
 
-      drugs = List<Map<String, dynamic>>.from(
-        data,
-      );
+    final v =
+        value
+            .trim()
+            .toLowerCase();
 
-      filteredDrugs = List.from(drugs);
+    switch (v) {
 
-      applyFilter();
+      case 'tablet':
+        return 'Tablet';
 
-      setState(() {
-        isLoading = false;
-      });
-    } catch (e) {
-      debugPrint(e.toString());
+      case 'capsule':
+        return 'Capsule';
 
-      setState(() {
-        isLoading = false;
-      });
+      case 'syrup':
+        return 'Syrup';
+
+      case 'drops':
+        return 'Drops';
+
+      case 'suspension':
+        return 'Suspension';
+
+      default:
+        return 'Tablet';
     }
   }
 
   // =====================================================
-  // FILTER
+  // LOAD DRUGS
   // =====================================================
 
-  void applyFilter() {
-    List<Map<String, dynamic>> result =
-        List.from(drugs);
-
-    // PEDIATRIC FILTER
-
-    if (selectedFilter == 'Pediatric') {
-      result = result.where((drug) {
-        final type = drug['drug_type']
-                ?.toString()
-                .toLowerCase()
-                .trim() ??
-            '';
-
-        return type.contains(
-          'pediatric',
-        );
-      }).toList();
-    }
-
-    // GENERAL FILTER
-
-    if (selectedFilter ==
-        'Drug Database') {
-      result = result.where((drug) {
-        final type = drug['drug_type']
-                ?.toString()
-                .toLowerCase()
-                .trim() ??
-            '';
-
-        return !type.contains(
-          'pediatric',
-        );
-      }).toList();
-    }
-
-    // SEARCH
-
-    final query =
-        searchController.text.toLowerCase();
-
-    result = result.where((drug) {
-      final text =
-          '${drug['name']} ${drug['generic_name']} ${drug['dose']}'
-              .toLowerCase();
-
-      return text.contains(query);
-    }).toList();
+  Future<void> loadDrugs() async {
 
     setState(() {
-      filteredDrugs = result;
+      isLoading = true;
     });
+
+    try {
+
+      List<Map<String, dynamic>> result = [];
+
+      if (selectedFilter ==
+          'All Drugs') {
+
+        final general =
+            await supabase
+                .from('drugs')
+                .select();
+
+        final pediatric =
+            await supabase
+                .from('pediatric_drugs')
+                .select();
+
+        result = [
+
+          ...List<Map<String, dynamic>>.from(
+            general,
+          ),
+
+          ...List<Map<String, dynamic>>.from(
+            pediatric,
+          ),
+        ];
+      }
+
+      else if (selectedFilter ==
+          'Drug Database') {
+
+        final general =
+            await supabase
+                .from('drugs')
+                .select();
+
+        result =
+            List<Map<String, dynamic>>.from(
+          general,
+        );
+      }
+
+      else {
+
+        final pediatric =
+            await supabase
+                .from('pediatric_drugs')
+                .select();
+
+        result =
+            List<Map<String, dynamic>>.from(
+          pediatric,
+        );
+      }
+
+      drugs = result;
+
+      applySearch();
+
+    } catch (e) {
+
+      debugPrint(e.toString());
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  // =====================================================
+  // SEARCH
+  // =====================================================
+
+  void applySearch() {
+
+    final query =
+        searchController.text
+            .toLowerCase();
+
+    filteredDrugs = drugs.where((drug) {
+
+      final name =
+          drug['name']
+                  ?.toString()
+                  .toLowerCase() ??
+              '';
+
+      return name.contains(query);
+
+    }).toList();
+
+    setState(() {});
   }
 
   // =====================================================
   // DELETE
   // =====================================================
 
-  Future<void> deleteDrug(int id) async {
+  Future<void> deleteDrug(
+      Map<String, dynamic> drug) async {
+
     try {
-      await SupabaseService.deleteDrug(id);
+
+      final isPediatric =
+          drug.containsKey(
+              'mg_per_kg_min');
+
+      final table =
+          isPediatric
+              ? 'pediatric_drugs'
+              : 'drugs';
+
+      await supabase
+          .from(table)
+          .delete()
+          .eq('id', drug['id']);
 
       await loadDrugs();
 
-      if (!mounted) return;
+      if (mounted) {
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-        const SnackBar(
-          content:
-              Text('Drug deleted'),
-        ),
-      );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(
+
+          const SnackBar(
+            content:
+                Text('Drug deleted'),
+          ),
+        );
+      }
+
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-        SnackBar(
-          content:
-              Text(e.toString()),
-        ),
-      );
+
+      debugPrint(e.toString());
     }
   }
 
   // =====================================================
-  // CHIP
+  // EDIT DIALOG
   // =====================================================
 
-  Widget buildChip(
-    IconData icon,
-    String text,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 7,
+  Future<void> showEditDialog(
+      Map<String, dynamic> drug) async {
+
+    final nameController =
+        TextEditingController(
+      text:
+          drug['name']?.toString() ??
+              '',
+    );
+
+    final doseController =
+        TextEditingController(
+      text:
+          drug['dose']?.toString() ??
+              '',
+    );
+
+    final noteController =
+        TextEditingController(
+      text:
+          drug['note']?.toString() ??
+              '',
+    );
+
+    String selectedCategory =
+        drug['category']
+                ?.toString() ??
+            categories.first;
+
+    String selectedDosageForm =
+        normalizeDosageForm(
+      drug['dosage_form']
+              ?.toString() ??
+          'Tablet',
+    );
+
+    final isPediatric =
+        drug.containsKey(
+            'mg_per_kg_min');
+
+    await showDialog(
+
+      context: context,
+
+      builder: (context) {
+
+        return StatefulBuilder(
+
+          builder:
+              (context,
+                  setStateDialog) {
+
+            return Dialog(
+
+              backgroundColor:
+                  const Color(
+                0xff10192d,
+              ),
+
+              child:
+                  SingleChildScrollView(
+
+                child: Padding(
+
+                  padding:
+                      const EdgeInsets.all(
+                    24,
+                  ),
+
+                  child: Column(
+
+                    mainAxisSize:
+                        MainAxisSize.min,
+
+                    children: [
+
+                      const Text(
+
+                        'Edit Drug',
+
+                        style: TextStyle(
+                          color:
+                              Colors.white,
+                          fontSize:
+                              24,
+                          fontWeight:
+                              FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(
+                        height: 24,
+                      ),
+
+                      buildInput(
+                        controller:
+                            nameController,
+                        label:
+                            'Drug Name',
+                      ),
+
+                      const SizedBox(
+                        height: 16,
+                      ),
+
+                      DropdownButtonFormField<
+                          String>(
+
+                        value:
+                            categories.contains(
+                                    selectedCategory)
+                                ? selectedCategory
+                                : null,
+
+                        dropdownColor:
+                            const Color(
+                          0xff10192d,
+                        ),
+
+                        style:
+                            const TextStyle(
+                          color:
+                              Colors.white,
+                        ),
+
+                        decoration:
+                            inputDecoration(
+                          'Category',
+                        ),
+
+                        items:
+                            categories.map(
+                          (e) {
+
+                            return DropdownMenuItem(
+                              value: e,
+                              child:
+                                  Text(e),
+                            );
+                          },
+                        ).toList(),
+
+                        onChanged:
+                            (value) {
+
+                          if (value !=
+                              null) {
+
+                            setStateDialog(
+                              () {
+
+                                selectedCategory =
+                                    value;
+                              },
+                            );
+                          }
+                        },
+                      ),
+
+                      const SizedBox(
+                        height: 16,
+                      ),
+
+                      buildInput(
+                        controller:
+                            doseController,
+                        label: 'Dose',
+                      ),
+
+                      const SizedBox(
+                        height: 16,
+                      ),
+
+                      DropdownButtonFormField<
+                          String>(
+
+                        value:
+                            dosageForms.contains(
+                                    selectedDosageForm)
+                                ? selectedDosageForm
+                                : null,
+
+                        dropdownColor:
+                            const Color(
+                          0xff10192d,
+                        ),
+
+                        style:
+                            const TextStyle(
+                          color:
+                              Colors.white,
+                        ),
+
+                        decoration:
+                            inputDecoration(
+                          'Dosage Form',
+                        ),
+
+                        items:
+                            dosageForms.map(
+                          (form) {
+
+                            return DropdownMenuItem<
+                                String>(
+                              value: form,
+                              child:
+                                  Text(form),
+                            );
+                          },
+                        ).toList(),
+
+                        onChanged:
+                            (value) {
+
+                          if (value !=
+                              null) {
+
+                            setStateDialog(
+                              () {
+
+                                selectedDosageForm =
+                                    value;
+                              },
+                            );
+                          }
+                        },
+                      ),
+
+                      const SizedBox(
+                        height: 16,
+                      ),
+
+                      buildInput(
+                        controller:
+                            noteController,
+                        label: 'Note',
+                        maxLines: 3,
+                      ),
+
+                      const SizedBox(
+                        height: 24,
+                      ),
+
+                      Row(
+
+                        children: [
+
+                          Expanded(
+
+                            child:
+                                ElevatedButton(
+
+                              style:
+                                  ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    Colors.red,
+                              ),
+
+                              onPressed:
+                                  () {
+
+                                Navigator.pop(
+                                    context);
+                              },
+
+                              child:
+                                  const Text(
+                                'Cancel',
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(
+                            width: 16,
+                          ),
+
+                          Expanded(
+
+                            child:
+                                ElevatedButton(
+
+                              style:
+                                  ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    Colors
+                                        .cyanAccent,
+
+                                foregroundColor:
+                                    Colors.black,
+                              ),
+
+                              onPressed:
+                                  () async {
+
+                                try {
+
+                                  final table =
+                                      isPediatric
+                                          ? 'pediatric_drugs'
+                                          : 'drugs';
+
+                                  await supabase
+                                      .from(
+                                          table)
+                                      .update({
+
+                                    'name':
+                                        nameController
+                                            .text,
+
+                                    'category':
+                                        selectedCategory,
+
+                                    'dose':
+                                        doseController
+                                            .text,
+
+                                    'dosage_form':
+                                        selectedDosageForm,
+
+                                    'note':
+                                        noteController
+                                            .text,
+
+                                  })
+                                      .eq(
+                                    'id',
+                                    drug['id'],
+                                  );
+
+                                  Navigator.pop(
+                                      context);
+
+                                  await loadDrugs();
+
+                                  if (mounted) {
+
+                                    ScaffoldMessenger.of(
+                                            context)
+                                        .showSnackBar(
+
+                                      const SnackBar(
+                                        content:
+                                            Text(
+                                          'Drug updated successfully',
+                                        ),
+                                      ),
+                                    );
+                                  }
+
+                                } catch (e) {
+
+                                  debugPrint(
+                                      e.toString());
+                                }
+                              },
+
+                              child:
+                                  const Text(
+                                'Save',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // =====================================================
+  // INPUT DECORATION
+  // =====================================================
+
+  InputDecoration inputDecoration(
+      String label) {
+
+    return InputDecoration(
+
+      labelText: label,
+
+      labelStyle:
+          TextStyle(
+        color: Colors.white
+            .withOpacity(0.7),
       ),
-      decoration: BoxDecoration(
+
+      filled: true,
+
+      fillColor:
+          Colors.white
+              .withOpacity(0.05),
+
+      border:
+          OutlineInputBorder(
+
         borderRadius:
-            BorderRadius.circular(50),
-        color:
-            Colors.white.withOpacity(0.06),
+            BorderRadius.circular(
+          16,
+        ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 14,
-            color: Colors.cyanAccent,
-          ),
-          const SizedBox(width: 5),
-          Text(
-            text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
+    );
+  }
+
+  Widget buildInput({
+
+    required TextEditingController
+        controller,
+
+    required String label,
+
+    int maxLines = 1,
+
+  }) {
+
+    return TextField(
+
+      controller: controller,
+
+      maxLines: maxLines,
+
+      style: const TextStyle(
+        color: Colors.white,
       ),
+
+      decoration:
+          inputDecoration(label),
     );
   }
 
@@ -196,595 +681,450 @@ class _AdminDrugManagementPageState
 
   @override
   Widget build(BuildContext context) {
-    final width =
-        MediaQuery.of(context).size.width;
-
-    final bool isMobile = width < 700;
 
     return Scaffold(
+
       backgroundColor:
-          const Color(0xff0B1220),
+          const Color(0xff081221),
 
-      body: isLoading
-          ? const Center(
-              child:
-                  CircularProgressIndicator(
-                color: Colors.cyanAccent,
+      floatingActionButton:
+          FloatingActionButton(
+
+        backgroundColor:
+            Colors.cyanAccent,
+
+        child: const Icon(
+          Icons.refresh,
+          color: Colors.black,
+        ),
+
+        onPressed: loadDrugs,
+      ),
+
+      body: Padding(
+
+        padding:
+            const EdgeInsets.all(24),
+
+        child: Column(
+
+          crossAxisAlignment:
+              CrossAxisAlignment.start,
+
+          children: [
+
+            const SizedBox(
+              height: 20,
+            ),
+
+            const Text(
+
+              'Drug Management',
+
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 36,
+                fontWeight:
+                    FontWeight.bold,
               ),
-            )
-          : SingleChildScrollView(
-              padding:
-                  EdgeInsets.all(
-                isMobile ? 16 : 24,
+            ),
+
+            const SizedBox(
+              height: 8,
+            ),
+
+            Text(
+
+              'Manage all medicine database',
+
+              style: TextStyle(
+                color: Colors.white
+                    .withOpacity(0.7),
               ),
-              child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                children: [
+            ),
 
-                  // =====================================================
-                  // HEADER
-                  // =====================================================
+            const SizedBox(
+              height: 30,
+            ),
 
-                  Container(
-                    width: double.infinity,
-                    padding:
-                        const EdgeInsets.all(28),
-                    decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.circular(28),
-                      color: Colors.white
-                          .withOpacity(0.05),
-                      border: Border.all(
-                        color: Colors.white
-                            .withOpacity(0.08),
+            Row(
+
+              children: [
+
+                Expanded(
+
+                  child: TextField(
+
+                    controller:
+                        searchController,
+
+                    style:
+                        const TextStyle(
+                      color:
+                          Colors.white,
+                    ),
+
+                    decoration:
+                        InputDecoration(
+
+                      hintText:
+                          'Search drug...',
+
+                      hintStyle:
+                          TextStyle(
+                        color: Colors
+                            .white
+                            .withOpacity(
+                          0.5,
+                        ),
+                      ),
+
+                      filled: true,
+
+                      fillColor:
+                          Colors.white
+                              .withOpacity(
+                        0.05,
+                      ),
+
+                      border:
+                          OutlineInputBorder(
+
+                        borderRadius:
+                            BorderRadius.circular(
+                          16,
+                        ),
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment
-                                    .start,
-                            children: [
-                              const Text(
-                                'Drug Management',
-                                style: TextStyle(
-                                  color:
-                                      Colors.white,
-                                  fontSize: 34,
-                                  fontWeight:
-                                      FontWeight.bold,
-                                ),
-                              ),
 
-                              const SizedBox(
-                                  height: 10),
-
-                              Text(
-                                'Manage all medicine database',
-                                style: TextStyle(
-                                  color: Colors.white
-                                      .withOpacity(
-                                          0.7),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        Container(
-                          width: 90,
-                          height: 90,
-                          decoration:
-                              BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient:
-                                LinearGradient(
-                              colors: [
-                                Colors.cyanAccent
-                                    .withOpacity(
-                                        0.3),
-                                Colors.blueAccent
-                                    .withOpacity(
-                                        0.2),
-                              ],
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons
-                                .medication_rounded,
-                            color: Colors.white24,
-                            size: 50,
-                          ),
-                        ),
-                      ],
-                    ),
+                    onChanged: (v) {
+                      applySearch();
+                    },
                   ),
+                ),
 
-                  const SizedBox(height: 24),
+                const SizedBox(
+                  width: 20,
+                ),
 
-                  // =====================================================
-                  // SEARCH
-                  // =====================================================
+                SizedBox(
 
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: TextField(
-                          controller:
-                              searchController,
-                          style:
-                              const TextStyle(
-                            color:
-                                Colors.white,
-                          ),
-                          decoration:
-                              InputDecoration(
-                            hintText:
-                                'Search drug...',
-                            hintStyle:
-                                TextStyle(
-                              color: Colors
-                                  .white
-                                  .withOpacity(
-                                      0.5),
-                            ),
+                  width: 250,
 
-                            prefixIcon:
-                                const Icon(
-                              Icons.search,
-                              color:
-                                  Colors.cyanAccent,
-                            ),
+                  child:
+                      DropdownButtonFormField<
+                          String>(
 
-                            filled: true,
+                    value:
+                        selectedFilter,
 
-                            fillColor: Colors
-                                .white
-                                .withOpacity(
-                                    0.05),
+                    dropdownColor:
+                        const Color(
+                      0xff10192d,
+                    ),
 
-                            border:
-                                OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius
-                                      .circular(
-                                          18),
-                            ),
+                    style:
+                        const TextStyle(
+                      color:
+                          Colors.white,
+                    ),
 
-                            enabledBorder:
-                                OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius
-                                      .circular(
-                                          18),
-                              borderSide:
-                                  BorderSide(
-                                color: Colors
-                                    .white
-                                    .withOpacity(
-                                        0.08),
-                              ),
-                            ),
+                    decoration:
+                        InputDecoration(
 
-                            focusedBorder:
-                                OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius
-                                      .circular(
-                                          18),
-                              borderSide:
-                                  const BorderSide(
-                                color:
-                                    Colors.cyanAccent,
-                              ),
-                            ),
-                          ),
-                          onChanged: (v) {
-                            applyFilter();
-                          },
+                      filled: true,
+
+                      fillColor:
+                          Colors.white
+                              .withOpacity(
+                        0.05,
+                      ),
+
+                      border:
+                          OutlineInputBorder(
+
+                        borderRadius:
+                            BorderRadius.circular(
+                          16,
+                        ),
+                      ),
+                    ),
+
+                    items: const [
+
+                      DropdownMenuItem(
+                        value:
+                            'All Drugs',
+                        child: Text(
+                          'All Drugs',
                         ),
                       ),
 
-                      const SizedBox(width: 16),
-
-                      Expanded(
-                        flex: 2,
-                        child:
-                            DropdownButtonFormField<
-                                String>(
-                          value:
-                              selectedFilter,
-                          dropdownColor:
-                              const Color(
-                                  0xff10192d),
-                          style:
-                              const TextStyle(
-                            color:
-                                Colors.white,
-                          ),
-                          decoration:
-                              InputDecoration(
-                            filled: true,
-                            fillColor: Colors
-                                .white
-                                .withOpacity(
-                                    0.05),
-                            border:
-                                OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius
-                                      .circular(
-                                          18),
-                            ),
-                          ),
-                          items: [
-                            'All Drugs',
+                      DropdownMenuItem(
+                        value:
                             'Drug Database',
-                            'Pediatric',
-                          ].map((e) {
-                            return DropdownMenuItem(
-                              value: e,
-                              child: Text(e),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            selectedFilter =
-                                value!;
+                        child: Text(
+                          'Drug Database',
+                        ),
+                      ),
 
-                            applyFilter();
-                          },
+                      DropdownMenuItem(
+                        value:
+                            'Pediatric',
+                        child: Text(
+                          'Pediatric',
                         ),
                       ),
                     ],
+
+                    onChanged:
+                        (value) async {
+
+                      selectedFilter =
+                          value!;
+
+                      await loadDrugs();
+                    },
                   ),
+                ),
+              ],
+            ),
 
-                  const SizedBox(height: 26),
+            const SizedBox(
+              height: 30,
+            ),
 
-                  // =====================================================
-                  // EMPTY
-                  // =====================================================
+            Expanded(
 
-                  if (filteredDrugs.isEmpty)
-                    Container(
-                      width: double.infinity,
-                      padding:
-                          const EdgeInsets.all(
-                              40),
-                      decoration: BoxDecoration(
-                        borderRadius:
-                            BorderRadius.circular(
-                                24),
-                        color: Colors.white
-                            .withOpacity(0.04),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'No drugs found',
-                          style: TextStyle(
-                            color:
-                                Colors.white54,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ),
-                    ),
+              child: isLoading
 
-                  // =====================================================
-                  // GRID
-                  // =====================================================
+                  ? const Center(
+                      child:
+                          CircularProgressIndicator(),
+                    )
 
-                  if (filteredDrugs.isNotEmpty)
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics:
-                          const NeverScrollableScrollPhysics(),
-                      itemCount:
-                          filteredDrugs.length,
-                      gridDelegate:
-                          SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount:
-                            isMobile ? 1 : 2,
-                        crossAxisSpacing: 18,
-                        mainAxisSpacing: 18,
-                        childAspectRatio:
-                            isMobile
-                                ? 1.55
-                                : 1.7,
-                      ),
-                      itemBuilder:
-                          (context, index) {
+                  : filteredDrugs
+                          .isEmpty
 
-                        final drug =
-                            filteredDrugs[index];
+                      ? const Center(
 
-                        final bool
-                            isPediatric =
-                            drug['drug_type']
-                                    ?.toString()
-                                    .toLowerCase()
-                                    .contains(
-                                        'pediatric') ??
-                                false;
+                          child: Text(
 
-                        return Container(
-                          padding:
-                              const EdgeInsets.all(
-                                  22),
-                          decoration:
-                              BoxDecoration(
-                            borderRadius:
-                                BorderRadius
-                                    .circular(
-                                        28),
-                            color: Colors.white
-                                .withOpacity(
-                                    0.05),
-                            border: Border.all(
+                            'No drugs found',
+
+                            style: TextStyle(
                               color: Colors
-                                  .white
-                                  .withOpacity(
-                                      0.08),
+                                  .white54,
+                              fontSize:
+                                  20,
                             ),
                           ),
+                        )
 
-                          child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment
-                                    .start,
-                            children: [
+                      : GridView.builder(
 
-                              // TOP
+                          itemCount:
+                              filteredDrugs
+                                  .length,
 
-                              Row(
-                                children: [
-                                  Container(
-                                    padding:
-                                        const EdgeInsets
-                                            .all(12),
-                                    decoration:
-                                        BoxDecoration(
-                                      borderRadius:
-                                          BorderRadius
-                                              .circular(
-                                                  18),
-                                      gradient:
-                                          const LinearGradient(
-                                        colors: [
-                                          Colors
-                                              .cyanAccent,
-                                          Colors
-                                              .blueAccent,
-                                        ],
-                                      ),
-                                    ),
-                                    child:
-                                        const Icon(
-                                      Icons
-                                          .medication_rounded,
-                                      color: Colors
-                                          .white,
-                                    ),
-                                  ),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
 
-                                  const Spacer(),
+                            crossAxisCount:
+                                2,
 
-                                  Container(
-                                    padding:
-                                        const EdgeInsets
-                                            .symmetric(
-                                      horizontal:
-                                          12,
-                                      vertical: 7,
-                                    ),
-                                    decoration:
-                                        BoxDecoration(
-                                      borderRadius:
-                                          BorderRadius
-                                              .circular(
-                                                  50),
-                                      color: isPediatric
-                                          ? Colors
-                                              .orange
-                                              .withOpacity(
-                                                  0.2)
-                                          : Colors
-                                              .green
-                                              .withOpacity(
-                                                  0.2),
-                                    ),
-                                    child: Text(
-                                      isPediatric
-                                          ? 'Pediatric'
-                                          : 'General',
-                                      style:
-                                          TextStyle(
-                                        color: isPediatric
-                                            ? Colors
-                                                .orangeAccent
-                                            : Colors
-                                                .greenAccent,
-                                        fontWeight:
-                                            FontWeight
-                                                .bold,
-                                        fontSize:
-                                            11,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                            crossAxisSpacing:
+                                20,
+
+                            mainAxisSpacing:
+                                20,
+
+                            childAspectRatio:
+                                1.8,
+                          ),
+
+                          itemBuilder:
+                              (
+                                context,
+                                index,
+                              ) {
+
+                            final drug =
+                                filteredDrugs[
+                                    index];
+
+                            return Container(
+
+                              padding:
+                                  const EdgeInsets.all(
+                                20,
                               ),
 
-                              const SizedBox(
-                                  height: 18),
+                              decoration:
+                                  BoxDecoration(
 
-                              // NAME
+                                color: Colors
+                                    .white
+                                    .withOpacity(
+                                  0.05,
+                                ),
 
-                              Text(
-                                drug['name']
-                                    .toString(),
-                                maxLines: 1,
-                                overflow:
-                                    TextOverflow
-                                        .ellipsis,
-                                style:
-                                    const TextStyle(
-                                  color:
-                                      Colors.white,
-                                  fontSize: 22,
-                                  fontWeight:
-                                      FontWeight
-                                          .bold,
+                                borderRadius:
+                                    BorderRadius.circular(
+                                  24,
                                 ),
                               ),
 
-                              const SizedBox(
-                                  height: 8),
+                              child:
+                                  Column(
 
-                              // GENERIC
+                                crossAxisAlignment:
+                                    CrossAxisAlignment
+                                        .start,
 
-                              Text(
-                                drug['generic_name']
-                                        ?.toString() ??
-                                    '-',
-                                maxLines: 1,
-                                overflow:
-                                    TextOverflow
-                                        .ellipsis,
-                                style: TextStyle(
-                                  color: Colors
-                                      .white
-                                      .withOpacity(
-                                          0.7),
-                                ),
-                              ),
-
-                              const SizedBox(
-                                  height: 18),
-
-                              // CHIP
-
-                              Wrap(
-                                spacing: 10,
-                                runSpacing: 10,
                                 children: [
-                                  buildChip(
-                                    Icons.category,
-                                    drug['category']
-                                            ?.toString() ??
-                                        '-',
-                                  ),
 
-                                  buildChip(
-                                    Icons.science,
-                                    drug['dose']
-                                            ?.toString() ??
-                                        '-',
-                                  ),
+                                  Row(
 
-                                  buildChip(
-                                    Icons.medication,
-                                    drug['dosage_form']
-                                            ?.toString() ??
-                                        '-',
-                                  ),
-                                ],
-                              ),
+                                    mainAxisAlignment:
+                                        MainAxisAlignment
+                                            .spaceBetween,
 
-                              const Spacer(),
+                                    children: [
 
-                              // BUTTON
+                                      Expanded(
 
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child:
-                                        ElevatedButton.icon(
-                                      style:
-                                          ElevatedButton
-                                              .styleFrom(
-                                        backgroundColor:
-                                            Colors
-                                                .orange,
-                                        foregroundColor:
-                                            Colors
-                                                .white,
+                                        child:
+                                            Text(
+
+                                          drug['name']
+                                              .toString(),
+
+                                          overflow:
+                                              TextOverflow
+                                                  .ellipsis,
+
+                                          style:
+                                              const TextStyle(
+                                            color:
+                                                Colors.white,
+                                            fontSize:
+                                                24,
+                                            fontWeight:
+                                                FontWeight.bold,
+                                          ),
+                                        ),
                                       ),
-                                      onPressed:
-                                          () async {
 
-                                        await Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder:
-                                                (_) =>
-                                                    EditDrugPage(
-                                              drug:
-                                                  drug,
+                                      Row(
+
+                                        children: [
+
+                                          IconButton(
+
+                                            onPressed:
+                                                () {
+
+                                              showEditDialog(
+                                                  drug);
+                                            },
+
+                                            icon:
+                                                const Icon(
+                                              Icons
+                                                  .edit,
+                                              color:
+                                                  Colors.cyanAccent,
                                             ),
                                           ),
-                                        );
 
-                                        loadDrugs();
-                                      },
-                                      icon:
-                                          const Icon(
-                                        Icons.edit,
+                                          IconButton(
+
+                                            onPressed:
+                                                () {
+
+                                              deleteDrug(
+                                                  drug);
+                                            },
+
+                                            icon:
+                                                const Icon(
+                                              Icons
+                                                  .delete,
+                                              color:
+                                                  Colors.red,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      label:
-                                          const Text(
-                                        'Edit',
+                                    ],
+                                  ),
+
+                                  const SizedBox(
+                                    height:
+                                        10,
+                                  ),
+
+                                  Text(
+
+                                    'Category: ${drug['category'] ?? '-'}',
+
+                                    style:
+                                        TextStyle(
+                                      color: Colors
+                                          .white
+                                          .withOpacity(
+                                        0.7,
                                       ),
                                     ),
                                   ),
 
                                   const SizedBox(
-                                      width: 12),
+                                    height:
+                                        6,
+                                  ),
 
-                                  Expanded(
-                                    child:
-                                        ElevatedButton.icon(
-                                      style:
-                                          ElevatedButton
-                                              .styleFrom(
-                                        backgroundColor:
-                                            Colors
-                                                .red,
-                                        foregroundColor:
-                                            Colors
-                                                .white,
+                                  Text(
+
+                                    'Dose: ${drug['dose'] ?? '-'}',
+
+                                    style:
+                                        TextStyle(
+                                      color: Colors
+                                          .white
+                                          .withOpacity(
+                                        0.7,
                                       ),
-                                      onPressed:
-                                          () {
-                                        deleteDrug(
-                                          drug[
-                                              'id'],
-                                        );
-                                      },
-                                      icon:
-                                          const Icon(
-                                        Icons
-                                            .delete,
-                                      ),
-                                      label:
-                                          const Text(
-                                        'Delete',
+                                    ),
+                                  ),
+
+                                  const SizedBox(
+                                    height:
+                                        6,
+                                  ),
+
+                                  Text(
+
+                                    'Form: ${drug['dosage_form'] ?? '-'}',
+
+                                    style:
+                                        TextStyle(
+                                      color: Colors
+                                          .white
+                                          .withOpacity(
+                                        0.7,
                                       ),
                                     ),
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                ],
-              ),
+                            );
+                          },
+                        ),
             ),
+          ],
+        ),
+      ),
     );
   }
 }

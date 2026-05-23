@@ -17,18 +17,17 @@ class _PediatricDosePageState
       TextEditingController();
 
   final TextEditingController durationController =
-      TextEditingController(
-    text: '5',
-  );
+      TextEditingController(text: '5');
 
   List<Map<String, dynamic>> drugs = [];
   List<Map<String, dynamic>> filteredDrugs = [];
+
   List<String> categories = [];
 
   final List<String> dosageForms = [
     'tablet',
-    'syrup',
     'capsule',
+    'syrup',
     'drops',
     'suspension',
   ];
@@ -59,14 +58,14 @@ class _PediatricDosePageState
     try {
 
       final data =
-          await SupabaseService
-              .getPediatricDrugs();
+          await SupabaseService.getPediatricDrugs();
 
-      drugs = data;
+      drugs =
+          List<Map<String, dynamic>>.from(data);
 
       categories = drugs
           .map(
-            (e) => e['category']
+            (e) => (e['category'] ?? '')
                 .toString(),
           )
           .toSet()
@@ -75,8 +74,7 @@ class _PediatricDosePageState
       categories.sort();
 
       if (categories.isNotEmpty) {
-        selectedCategory =
-            categories.first;
+        selectedCategory = categories.first;
       }
 
       filterDrugs();
@@ -86,6 +84,8 @@ class _PediatricDosePageState
       });
 
     } catch (e) {
+
+      debugPrint(e.toString());
 
       setState(() {
         isLoading = false;
@@ -99,24 +99,31 @@ class _PediatricDosePageState
 
   void filterDrugs() {
 
-    filteredDrugs =
-        drugs.where((drug) {
+    filteredDrugs = drugs.where((drug) {
+
+      final category =
+          (drug['category'] ?? '')
+              .toString()
+              .toLowerCase()
+              .trim();
+
+      final dosageForm =
+          (drug['dosage_form'] ?? '')
+              .toString()
+              .toLowerCase()
+              .trim();
 
       final categoryMatch =
-          drug['category']
-                  .toString()
-                  .toLowerCase() ==
-              selectedCategory!
-                  .toLowerCase();
+          category ==
+          (selectedCategory ?? '')
+              .toLowerCase()
+              .trim();
 
       final dosageMatch =
-          drug['dosage_form']
-                  .toString()
-                  .toLowerCase()
-                  .trim() ==
-              selectedDosageForm!
-                  .toLowerCase()
-                  .trim();
+          dosageForm ==
+          (selectedDosageForm ?? '')
+              .toLowerCase()
+              .trim();
 
       return categoryMatch &&
           dosageMatch;
@@ -124,12 +131,8 @@ class _PediatricDosePageState
     }).toList();
 
     if (filteredDrugs.isNotEmpty) {
-
-      selectedDrug =
-          filteredDrugs.first;
-
+      selectedDrug = filteredDrugs.first;
     } else {
-
       selectedDrug = null;
     }
 
@@ -145,25 +148,21 @@ class _PediatricDosePageState
     final searchController =
         TextEditingController();
 
-    List<Map<String, dynamic>>
-        tempList = List.from(
-      filteredDrugs,
-    );
+    List<Map<String, dynamic>> tempList =
+        List.from(filteredDrugs);
 
     await showDialog(
 
       context: context,
 
-      barrierColor:
-          Colors.black54,
+      barrierColor: Colors.black54,
 
       builder: (context) {
 
         return StatefulBuilder(
 
           builder:
-              (context,
-                  setStateDialog) {
+              (context, setStateDialog) {
 
             return Dialog(
 
@@ -173,15 +172,11 @@ class _PediatricDosePageState
               child: ClipRRect(
 
                 borderRadius:
-                    BorderRadius.circular(
-                  30,
-                ),
+                    BorderRadius.circular(30),
 
-                child:
-                    BackdropFilter(
+                child: BackdropFilter(
 
-                  filter:
-                      ImageFilter.blur(
+                  filter: ImageFilter.blur(
                     sigmaX: 18,
                     sigmaY: 18,
                   ),
@@ -189,35 +184,24 @@ class _PediatricDosePageState
                   child: Container(
 
                     padding:
-                        const EdgeInsets.all(
-                      22,
-                    ),
+                        const EdgeInsets.all(22),
 
-                    decoration:
-                        BoxDecoration(
+                    decoration: BoxDecoration(
 
                       borderRadius:
-                          BorderRadius.circular(
-                        30,
-                      ),
+                          BorderRadius.circular(30),
 
-                      color: Colors
-                          .white
-                          .withOpacity(
-                        0.06,
-                      ),
+                      color: Colors.white
+                          .withOpacity(0.06),
 
-                      border:
-                          Border.all(
-                        color: Colors
-                            .white
-                            .withOpacity(
-                          0.08,
-                        ),
+                      border: Border.all(
+                        color: Colors.white
+                            .withOpacity(0.08),
                       ),
                     ),
 
                     child: Column(
+
                       mainAxisSize:
                           MainAxisSize.min,
 
@@ -225,28 +209,21 @@ class _PediatricDosePageState
 
                         Row(
 
-                          children: [
+                          children: const [
 
-                            const Icon(
+                            Icon(
                               Icons.search_rounded,
                               color:
                                   Colors.cyanAccent,
                             ),
 
-                            const SizedBox(
-                              width: 10,
-                            ),
+                            SizedBox(width: 10),
 
-                            const Text(
-
+                            Text(
                               'Search Drug',
-
-                              style:
-                                  TextStyle(
-                                color:
-                                    Colors.white,
-                                fontSize:
-                                    22,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 22,
                                 fontWeight:
                                     FontWeight.bold,
                               ),
@@ -254,9 +231,7 @@ class _PediatricDosePageState
                           ],
                         ),
 
-                        const SizedBox(
-                          height: 22,
-                        ),
+                        const SizedBox(height: 22),
 
                         TextField(
 
@@ -265,8 +240,7 @@ class _PediatricDosePageState
 
                           style:
                               const TextStyle(
-                            color:
-                                Colors.white,
+                            color: Colors.white,
                           ),
 
                           decoration:
@@ -274,63 +248,50 @@ class _PediatricDosePageState
                             'Search medicine...',
                           ),
 
-                          onChanged:
-                              (value) {
+                          onChanged: (value) {
 
-                            setStateDialog(
-                              () {
+                            setStateDialog(() {
 
-                                tempList =
-                                    filteredDrugs
-                                        .where(
-                                  (drug) {
+                              tempList =
+                                  filteredDrugs.where(
+                                (drug) {
 
-                                    final text =
-                                        '${drug['name']} ${drug['dose']}'
-                                            .toLowerCase();
+                                  final text =
+                                      '${drug['name'] ?? ''} '
+                                      '${drug['concentration'] ?? ''}'
+                                          .toLowerCase();
 
-                                    return text
-                                        .contains(
-                                      value
-                                          .toLowerCase(),
-                                    );
-                                  },
-                                ).toList();
-                              },
-                            );
+                                  return text.contains(
+                                    value.toLowerCase(),
+                                  );
+                                },
+                              ).toList();
+                            });
                           },
                         ),
 
-                        const SizedBox(
-                          height: 20,
-                        ),
+                        const SizedBox(height: 20),
 
                         SizedBox(
 
                           height: 420,
 
-                          child:
-                              ListView.builder(
+                          child: ListView.builder(
 
                             itemCount:
                                 tempList.length,
 
                             itemBuilder:
-                                (
-                              context,
-                              index,
-                            ) {
+                                (context, index) {
 
                               final drug =
-                                  tempList[
-                                      index];
+                                  tempList[index];
 
                               return Container(
 
                                 margin:
                                     const EdgeInsets.only(
-                                  bottom:
-                                      12,
+                                  bottom: 12,
                                 ),
 
                                 decoration:
@@ -341,26 +302,19 @@ class _PediatricDosePageState
                                     20,
                                   ),
 
-                                  color: Colors
-                                      .white
-                                      .withOpacity(
-                                    0.04,
-                                  ),
+                                  color: Colors.white
+                                      .withOpacity(0.04),
                                 ),
 
-                                child:
-                                    ListTile(
+                                child: ListTile(
 
                                   contentPadding:
                                       const EdgeInsets.symmetric(
-                                    horizontal:
-                                        18,
-                                    vertical:
-                                        10,
+                                    horizontal: 18,
+                                    vertical: 10,
                                   ),
 
-                                  leading:
-                                      Container(
+                                  leading: Container(
 
                                     padding:
                                         const EdgeInsets.all(
@@ -378,50 +332,37 @@ class _PediatricDosePageState
                                       gradient:
                                           const LinearGradient(
                                         colors: [
-                                          Colors
-                                              .cyanAccent,
-                                          Colors
-                                              .blueAccent,
+                                          Colors.cyanAccent,
+                                          Colors.blueAccent,
                                         ],
                                       ),
                                     ),
 
-                                    child:
-                                        const Icon(
-                                      Icons
-                                          .medication_rounded,
-                                      color:
-                                          Colors.white,
+                                    child: const Icon(
+                                      Icons.medication_rounded,
+                                      color: Colors.white,
                                     ),
                                   ),
 
-                                  title:
-                                      Text(
+                                  title: Text(
 
-                                    '${drug['name']} (${drug['dose']})',
+                                    '${drug['name']} (${drug['concentration'] ?? '-'})',
 
                                     style:
                                         const TextStyle(
-                                      color:
-                                          Colors.white,
+                                      color: Colors.white,
                                       fontWeight:
                                           FontWeight.bold,
                                     ),
                                   ),
 
-                                  onTap:
-                                      () {
+                                  onTap: () {
 
-                                    setState(
-                                      () {
-                                        selectedDrug =
-                                            drug;
-                                      },
-                                    );
+                                    setState(() {
+                                      selectedDrug = drug;
+                                    });
 
-                                    Navigator.pop(
-                                      context,
-                                    );
+                                    Navigator.pop(context);
                                   },
                                 ),
                               );
@@ -496,17 +437,12 @@ class _PediatricDosePageState
     }
 
     final weight =
-        double.tryParse(
-      weightController.text,
-    );
+        double.tryParse(weightController.text);
 
     final duration =
-        double.tryParse(
-      durationController.text,
-    );
+        double.tryParse(durationController.text);
 
-    if (weight == null ||
-        weight <= 0) {
+    if (weight == null || weight <= 0) {
 
       setState(() {
         result = 'Invalid weight';
@@ -515,8 +451,7 @@ class _PediatricDosePageState
       return;
     }
 
-    if (duration == null ||
-        duration <= 0) {
+    if (duration == null || duration <= 0) {
 
       setState(() {
         result = 'Invalid duration';
@@ -525,231 +460,184 @@ class _PediatricDosePageState
       return;
     }
 
-    final maxDose =
+    final mgPerKg =
         double.tryParse(
-              selectedDrug![
-                      'mg_per_kg_max']
+              (selectedDrug!['mg_per_kg'] ?? '0')
                   .toString(),
             ) ??
             0;
 
-    final syrupMg =
-        double.tryParse(
-              selectedDrug![
-                      'syrup_mg']
-                  .toString(),
-            ) ??
-            0;
-
-    final syrupMl =
-        double.tryParse(
-              selectedDrug![
-                      'syrup_ml']
-                  .toString(),
-            ) ??
-            0;
+    final concentration =
+        (selectedDrug!['concentration'] ?? '')
+            .toString();
 
     final dosageForm =
-        selectedDrug![
-                'dosage_form']
+        (selectedDrug!['dosage_form'] ?? '')
             .toString()
             .toLowerCase();
 
     final drugName =
-        selectedDrug!['name']
-            .toString();
+        selectedDrug!['name'].toString();
 
     final note =
-        selectedDrug!['note'] ?? '-';
+        selectedDrug!['max_daily_dose'] ?? '-';
 
-    final maxMg =
-        weight * maxDose;
+    final doseMg =
+        weight * mgPerKg;
 
     String calculatedDose = '';
     String smartSigna = '';
     String qtyText = '';
 
     // =====================================================
-    // SYRUP / DROPS
+    // SYRUP
     // =====================================================
 
-    if ((dosageForm == 'syrup' ||
-            dosageForm == 'drops' ||
-            dosageForm == 'suspension') &&
-        syrupMg > 0 &&
-        syrupMl > 0) {
+    if (dosageForm == 'syrup' ||
+        dosageForm == 'drops' ||
+        dosageForm == 'suspension') {
+
+      final split =
+          concentration.split('/');
+
+      final mgPart =
+          split.first
+              .replaceAll('mg', '')
+              .trim();
+
+      final mlPart =
+          split.last
+              .replaceAll('ml', '')
+              .replaceAll('mL', '')
+              .trim();
+
+      final concMg =
+          double.tryParse(mgPart) ?? 0;
+
+      final concMl =
+          double.tryParse(mlPart) ?? 5;
 
       double doseMl =
-          ((maxMg / syrupMg) *
-                  syrupMl);
+          (doseMg / concMg) * concMl;
 
-      // AUTO ROUNDING KLINIS
+      // ROUND CLINICAL STYLE
 
-      if (doseMl <= 1) {
+      if (doseMl <= 2.5) {
 
-        doseMl =
-            (doseMl * 10)
-                    .round() /
-                10;
+        doseMl = 2.5;
+
+      } else if (doseMl <= 5) {
+
+        doseMl = 5;
 
       } else {
 
         doseMl =
-            (doseMl * 2)
-                    .round() /
-                2;
+            (doseMl / 5).round() * 5;
       }
 
       final totalMl =
-          doseMl *
-              3 *
-              duration;
-
-      final bottleSize =
-          60;
+          doseMl * 3 * duration;
 
       final bottleCount =
-          (totalMl /
-                  bottleSize)
-              .ceil();
+          (totalMl / 60).ceil();
 
       calculatedDose =
-          '${doseMl.toStringAsFixed(1)} mL per dose';
+          '${doseMl.toStringAsFixed(0)} mL per dose';
 
       smartSigna =
-          '3 dd ${doseMl.toStringAsFixed(1)} mL p.c x ${duration.toInt()} days';
+          'S 3 dd ${doseMl.toStringAsFixed(0)} mL p.c';
 
       qtyText =
-          'fl No. ${toRoman(bottleCount)}';
+          'Flac. No. ${toRoman(bottleCount)}';
     }
 
     // =====================================================
-    // TABLET / CAPSULE
+    // TABLET
     // =====================================================
 
     else {
 
-      final tabletStrength =
+      final strength =
           double.tryParse(
-                selectedDrug![
-                        'dose']
-                    .toString()
-                    .replaceAll(
-                        'mg', '')
+                concentration
+                    .replaceAll('mg', '')
                     .trim(),
               ) ??
               500;
 
-      double tabPerDose =
-          maxMg /
-              tabletStrength;
+      double tabDose =
+          doseMg / strength;
 
-      // CLINICAL ROUNDING
+      if (tabDose <= 0.25) {
 
-      if (tabPerDose <=
-          0.25) {
+        tabDose = 0.25;
 
-        tabPerDose = 0.25;
+      } else if (tabDose <= 0.5) {
 
-      } else if (tabPerDose <=
-          0.5) {
+        tabDose = 0.5;
 
-        tabPerDose = 0.5;
+      } else if (tabDose <= 0.75) {
 
-      } else if (tabPerDose <=
-          0.75) {
+        tabDose = 0.75;
 
-        tabPerDose = 0.75;
+      } else if (tabDose <= 1) {
 
-      } else if (tabPerDose <=
-          1) {
-
-        tabPerDose = 1;
-
-      } else if (tabPerDose <=
-          1.5) {
-
-        tabPerDose = 1.5;
-
-      } else if (tabPerDose <=
-          2) {
-
-        tabPerDose = 2;
+        tabDose = 1;
 
       } else {
 
-        tabPerDose =
-            tabPerDose.roundToDouble();
+        tabDose =
+            tabDose.roundToDouble();
       }
 
       String tabText = '';
 
-      if (tabPerDose ==
-          0.25) {
+      if (tabDose == 0.25) {
 
         tabText = '¼ tab';
 
-      } else if (tabPerDose ==
-          0.5) {
+      } else if (tabDose == 0.5) {
 
         tabText = '½ tab';
 
-      } else if (tabPerDose ==
-          0.75) {
+      } else if (tabDose == 0.75) {
 
         tabText = '¾ tab';
-
-      } else if (tabPerDose ==
-          1) {
-
-        tabText = '1 tab';
-
-      } else if (tabPerDose ==
-          1.5) {
-
-        tabText = '1½ tab';
 
       } else {
 
         tabText =
-            '${tabPerDose.toStringAsFixed(0)} tab';
+            '${tabDose.toStringAsFixed(0)} tab';
       }
 
-      final exactQty =
-          tabPerDose *
-              3 *
-              duration;
-
-      final finalQty =
-          exactQty.ceil();
+      final totalTab =
+          (tabDose * 3 * duration).ceil();
 
       calculatedDose =
-          '${maxMg.toStringAsFixed(0)} mg per dose';
+          '${doseMg.toStringAsFixed(0)} mg per dose';
 
       smartSigna =
-          '3 dd $tabText p.c x ${duration.toInt()} days';
+          'S 3 dd $tabText p.c';
 
       qtyText =
-          'No. ${toRoman(finalQty)}';
+          'No. ${toRoman(totalTab)}';
     }
 
     setState(() {
 
-      result =
-          calculatedDose;
+      result = calculatedDose;
 
       clinicalNote =
-          note;
+          'Max daily dose: $note';
 
       generatedPrescription = '''
 
 R/
 
-$drugName
+$drugName ($concentration)
 
 $qtyText
-
-S:
 
 $smartSigna
 
@@ -761,75 +649,43 @@ $smartSigna
   // INPUT STYLE
   // =====================================================
 
-  InputDecoration cyberInput(
-      String label) {
+  InputDecoration cyberInput(String label) {
 
     return InputDecoration(
 
       labelText: label,
 
-      labelStyle:
-          TextStyle(
-        color: Colors.white
-            .withOpacity(
-          0.7,
-        ),
+      labelStyle: TextStyle(
+        color:
+            Colors.white.withOpacity(0.7),
       ),
 
       filled: true,
 
       fillColor:
-          Colors.white
-              .withOpacity(
-        0.05,
+          Colors.white.withOpacity(0.05),
+
+      border: OutlineInputBorder(
+        borderRadius:
+            BorderRadius.circular(18),
       ),
 
-      border:
-          OutlineInputBorder(
-
+      enabledBorder: OutlineInputBorder(
         borderRadius:
-            BorderRadius.circular(
-          18,
-        ),
+            BorderRadius.circular(18),
 
-        borderSide:
-            BorderSide(
-          color: Colors.white
-              .withOpacity(
-            0.08,
-          ),
-        ),
-      ),
-
-      enabledBorder:
-          OutlineInputBorder(
-
-        borderRadius:
-            BorderRadius.circular(
-          18,
-        ),
-
-        borderSide:
-            BorderSide(
-          color: Colors.white
-              .withOpacity(
-            0.08,
-          ),
-        ),
-      ),
-
-      focusedBorder:
-          OutlineInputBorder(
-
-        borderRadius:
-            BorderRadius.circular(
-          18,
-        ),
-
-        borderSide:
-            const BorderSide(
+        borderSide: BorderSide(
           color:
-              Colors.cyanAccent,
+              Colors.white.withOpacity(0.08),
+        ),
+      ),
+
+      focusedBorder: OutlineInputBorder(
+        borderRadius:
+            BorderRadius.circular(18),
+
+        borderSide: const BorderSide(
+          color: Colors.cyanAccent,
         ),
       ),
     );
@@ -844,8 +700,7 @@ $smartSigna
 
     return Scaffold(
 
-      backgroundColor:
-          Colors.transparent,
+      backgroundColor: Colors.transparent,
 
       body: isLoading
 
@@ -860,15 +715,12 @@ $smartSigna
           : SingleChildScrollView(
 
               padding:
-                  const EdgeInsets.all(
-                24,
-              ),
+                  const EdgeInsets.all(24),
 
               child: Column(
 
                 crossAxisAlignment:
-                    CrossAxisAlignment
-                        .start,
+                    CrossAxisAlignment.start,
 
                 children: [
 
@@ -877,87 +729,63 @@ $smartSigna
                     'Pediatric Dose',
 
                     style: TextStyle(
-                      color:
-                          Colors.white,
+                      color: Colors.white,
                       fontSize: 38,
                       fontWeight:
                           FontWeight.bold,
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 24,
-                  ),
+                  const SizedBox(height: 24),
 
-                  DropdownButtonFormField<
-                      String>(
+                  DropdownButtonFormField<String>(
 
-                    value:
-                        selectedCategory,
+                    value: selectedCategory,
 
                     dropdownColor:
-                        const Color(
-                      0xff10192d,
-                    ),
+                        const Color(0xff10192d),
 
                     style:
                         const TextStyle(
-                      color:
-                          Colors.white,
+                      color: Colors.white,
                     ),
 
                     decoration:
-                        cyberInput(
-                      'Category',
-                    ),
+                        cyberInput('Category'),
 
                     items:
-                        categories.map(
-                      (e) {
+                        categories.map((e) {
 
-                        return DropdownMenuItem(
-                          value: e,
+                      return DropdownMenuItem(
+                        value: e,
+                        child: Text(e),
+                      );
+                    }).toList(),
 
-                          child: Text(
-                            e,
-                          ),
-                        );
-                      },
-                    ).toList(),
+                    onChanged: (value) {
 
-                    onChanged:
-                        (value) {
+                      if (value != null) {
 
-                      if (value !=
-                          null) {
-
-                        selectedCategory =
-                            value;
+                        selectedCategory = value;
 
                         filterDrugs();
                       }
                     },
                   ),
 
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
 
-                  DropdownButtonFormField<
-                      String>(
+                  DropdownButtonFormField<String>(
 
                     value:
                         selectedDosageForm,
 
                     dropdownColor:
-                        const Color(
-                      0xff10192d,
-                    ),
+                        const Color(0xff10192d),
 
                     style:
                         const TextStyle(
-                      color:
-                          Colors.white,
+                      color: Colors.white,
                     ),
 
                     decoration:
@@ -966,116 +794,85 @@ $smartSigna
                     ),
 
                     items:
-                        dosageForms.map(
-                      (e) {
+                        dosageForms.map((e) {
 
-                        return DropdownMenuItem(
-                          value: e,
+                      return DropdownMenuItem(
+                        value: e,
+                        child:
+                            Text(e.toUpperCase()),
+                      );
+                    }).toList(),
 
-                          child: Text(
-                            e.toUpperCase(),
-                          ),
-                        );
-                      },
-                    ).toList(),
+                    onChanged: (value) {
 
-                    onChanged:
-                        (value) {
+                      if (value != null) {
 
-                      if (value !=
-                          null) {
-
-                        selectedDosageForm =
-                            value;
+                        selectedDosageForm = value;
 
                         filterDrugs();
                       }
                     },
                   ),
 
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
 
                   InkWell(
 
                     borderRadius:
-                        BorderRadius.circular(
-                      20,
-                    ),
+                        BorderRadius.circular(20),
 
-                    onTap:
-                        showDrugSearch,
+                    onTap: showDrugSearch,
 
-                    child:
-                        Container(
+                    child: Container(
 
-                      width:
-                          double.infinity,
+                      width: double.infinity,
 
                       padding:
                           const EdgeInsets.symmetric(
-                        horizontal:
-                            18,
-                        vertical:
-                            18,
+                        horizontal: 18,
+                        vertical: 18,
                       ),
 
-                      decoration:
-                          BoxDecoration(
+                      decoration: BoxDecoration(
 
                         borderRadius:
-                            BorderRadius.circular(
-                          20,
-                        ),
+                            BorderRadius.circular(20),
 
-                        color: Colors
-                            .white
-                            .withOpacity(
-                          0.05,
-                        ),
+                        color:
+                            Colors.white.withOpacity(0.05),
 
-                        border:
-                            Border.all(
-                          color: Colors
-                              .white
-                              .withOpacity(
-                            0.08,
-                          ),
+                        border: Border.all(
+                          color:
+                              Colors.white.withOpacity(0.08),
                         ),
                       ),
 
                       child: Row(
+
                         children: [
 
                           const Icon(
-                            Icons
-                                .search_rounded,
+                            Icons.search_rounded,
                             color:
                                 Colors.cyanAccent,
                           ),
 
-                          const SizedBox(
-                            width: 14,
-                          ),
+                          const SizedBox(width: 14),
 
                           Expanded(
 
                             child: Text(
 
-                              selectedDrug ==
-                                      null
+                              selectedDrug == null
                                   ? 'Search Drug'
-                                  : '${selectedDrug!['name']} (${selectedDrug!['dose']})',
+                                  : '${selectedDrug!['name']} (${selectedDrug!['concentration']})',
 
                               overflow:
-                                  TextOverflow
-                                      .ellipsis,
+                                  TextOverflow.ellipsis,
 
                               style:
                                   const TextStyle(
-                                color:
-                                    Colors.white,
+                                color: Colors.white,
                                 fontWeight:
                                     FontWeight.w600,
                               ),
@@ -1086,9 +883,7 @@ $smartSigna
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
 
                   TextField(
 
@@ -1096,13 +891,11 @@ $smartSigna
                         weightController,
 
                     keyboardType:
-                        TextInputType
-                            .number,
+                        TextInputType.number,
 
                     style:
                         const TextStyle(
-                      color:
-                          Colors.white,
+                      color: Colors.white,
                     ),
 
                     decoration:
@@ -1111,9 +904,7 @@ $smartSigna
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  const SizedBox(height: 20),
 
                   TextField(
 
@@ -1121,13 +912,11 @@ $smartSigna
                         durationController,
 
                     keyboardType:
-                        TextInputType
-                            .number,
+                        TextInputType.number,
 
                     style:
                         const TextStyle(
-                      color:
-                          Colors.white,
+                      color: Colors.white,
                     ),
 
                     decoration:
@@ -1136,27 +925,20 @@ $smartSigna
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 24,
-                  ),
+                  const SizedBox(height: 24),
 
                   SizedBox(
 
-                    width:
-                        double.infinity,
-
+                    width: double.infinity,
                     height: 58,
 
-                    child:
-                        ElevatedButton(
+                    child: ElevatedButton(
 
                       style:
-                          ElevatedButton
-                              .styleFrom(
+                          ElevatedButton.styleFrom(
 
                         backgroundColor:
-                            Colors
-                                .cyanAccent,
+                            Colors.cyanAccent,
 
                         foregroundColor:
                             Colors.black,
@@ -1164,24 +946,19 @@ $smartSigna
                         shape:
                             RoundedRectangleBorder(
                           borderRadius:
-                              BorderRadius.circular(
-                            18,
-                          ),
+                              BorderRadius.circular(18),
                         ),
                       ),
 
                       onPressed:
                           calculateDose,
 
-                      child:
-                          const Text(
+                      child: const Text(
 
                         'CALCULATE',
 
-                        style:
-                            TextStyle(
-                          fontSize:
-                              18,
+                        style: TextStyle(
+                          fontSize: 18,
                           fontWeight:
                               FontWeight.bold,
                         ),
@@ -1189,13 +966,9 @@ $smartSigna
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 30,
-                  ),
+                  const SizedBox(height: 30),
 
-                  if (result
-                      .isNotEmpty)
-
+                  if (result.isNotEmpty)
                     buildResultCard(),
                 ],
               ),
@@ -1211,43 +984,29 @@ $smartSigna
 
     return Container(
 
-      width:
-          double.infinity,
+      width: double.infinity,
 
       padding:
-          const EdgeInsets.all(
-        28,
-      ),
+          const EdgeInsets.all(28),
 
-      decoration:
-          BoxDecoration(
+      decoration: BoxDecoration(
 
         borderRadius:
-            BorderRadius.circular(
-          30,
-        ),
+            BorderRadius.circular(30),
 
         color:
-            Colors.white
-                .withOpacity(
-          0.05,
-        ),
+            Colors.white.withOpacity(0.05),
 
-        border:
-            Border.all(
+        border: Border.all(
           color:
-              Colors.white
-                  .withOpacity(
-            0.08,
-          ),
+              Colors.white.withOpacity(0.08),
         ),
       ),
 
       child: Column(
 
         crossAxisAlignment:
-            CrossAxisAlignment
-                .start,
+            CrossAxisAlignment.start,
 
         children: [
 
@@ -1264,9 +1023,7 @@ $smartSigna
             ),
           ),
 
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
 
           Text(
 
@@ -1274,16 +1031,12 @@ $smartSigna
 
             style:
                 const TextStyle(
-              color:
-                  Colors.white,
-              fontSize:
-                  18,
+              color: Colors.white,
+              fontSize: 18,
             ),
           ),
 
-          const SizedBox(
-            height: 28,
-          ),
+          const SizedBox(height: 28),
 
           const Text(
 
@@ -1298,33 +1051,22 @@ $smartSigna
             ),
           ),
 
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
 
           Container(
 
-            width:
-                double.infinity,
+            width: double.infinity,
 
             padding:
-                const EdgeInsets.all(
-              20,
-            ),
+                const EdgeInsets.all(20),
 
-            decoration:
-                BoxDecoration(
+            decoration: BoxDecoration(
 
               borderRadius:
-                  BorderRadius.circular(
-                22,
-              ),
+                  BorderRadius.circular(22),
 
-              color: Colors
-                  .white
-                  .withOpacity(
-                0.04,
-              ),
+              color:
+                  Colors.white.withOpacity(0.04),
             ),
 
             child: Text(
@@ -1333,19 +1075,14 @@ $smartSigna
 
               style:
                   const TextStyle(
-                color:
-                    Colors.white,
-                fontSize:
-                    16,
-                height:
-                    1.8,
+                color: Colors.white,
+                fontSize: 16,
+                height: 1.8,
               ),
             ),
           ),
 
-          const SizedBox(
-            height: 28,
-          ),
+          const SizedBox(height: 28),
 
           const Text(
 
@@ -1360,27 +1097,17 @@ $smartSigna
             ),
           ),
 
-          const SizedBox(
-            height: 12,
-          ),
+          const SizedBox(height: 12),
 
           Text(
 
             clinicalNote,
 
-            style:
-                TextStyle(
-              color: Colors
-                  .white
-                  .withOpacity(
-                0.78,
-              ),
-
-              fontSize:
-                  16,
-
-              height:
-                  1.8,
+            style: TextStyle(
+              color:
+                  Colors.white.withOpacity(0.78),
+              fontSize: 16,
+              height: 1.8,
             ),
           ),
         ],
