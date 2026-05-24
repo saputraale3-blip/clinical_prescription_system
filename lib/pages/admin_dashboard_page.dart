@@ -14,11 +14,14 @@ import 'package:clinical_prescription_system/pages/user_management_page.dart';
 import 'package:clinical_prescription_system/services/auth_service.dart';
 
 class AdminDashboardPage extends StatefulWidget {
-  const AdminDashboardPage({super.key});
+  const AdminDashboardPage({
+    super.key,
+  });
 
   @override
-  State<AdminDashboardPage> createState() =>
-      _AdminDashboardPageState();
+  State<AdminDashboardPage>
+      createState() =>
+          _AdminDashboardPageState();
 }
 
 class _AdminDashboardPageState
@@ -93,246 +96,302 @@ class _AdminDashboardPageState
     },
   ];
 
+  // =====================================================
+  // SIDEBAR
+  // =====================================================
+
+  Widget buildSidebar({
+    bool isMobile = false,
+  }) {
+
+    return Container(
+
+      color:
+          const Color(0xff16243d),
+
+      child: Column(
+
+        children: [
+
+          const SizedBox(
+            height: 50,
+          ),
+
+          const Icon(
+
+            Icons.local_hospital_rounded,
+
+            color:
+                Colors.cyanAccent,
+
+            size: 70,
+          ),
+
+          const SizedBox(
+            height: 20,
+          ),
+
+          Text(
+
+            'Clinical Admin',
+
+            style:
+                GoogleFonts.poppins(
+
+              color:
+                  Colors.white,
+
+              fontSize: 32,
+
+              fontWeight:
+                  FontWeight.bold,
+            ),
+          ),
+
+          const SizedBox(
+            height: 40,
+          ),
+
+          Expanded(
+
+            child:
+                ListView.builder(
+
+              itemCount:
+                  menuItems.length,
+
+              itemBuilder:
+                  (
+                context,
+                index,
+              ) {
+
+                final item =
+                    menuItems[index];
+
+                final selected =
+                    selectedIndex ==
+                        index;
+
+                return Padding(
+
+                  padding:
+                      const EdgeInsets.symmetric(
+
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+
+                  child:
+                      AnimatedContainer(
+
+                    duration:
+                        const Duration(
+                      milliseconds: 250,
+                    ),
+
+                    decoration:
+                        BoxDecoration(
+
+                      color:
+                          selected
+
+                              ? Colors
+                                  .cyanAccent
+                                  .withOpacity(
+                                  0.15,
+                                )
+
+                              : Colors
+                                  .transparent,
+
+                      borderRadius:
+                          BorderRadius.circular(
+                        18,
+                      ),
+                    ),
+
+                    child:
+                        ListTile(
+
+                      leading:
+                          Icon(
+
+                        item['icon'],
+
+                        color:
+                            selected
+
+                                ? Colors
+                                    .cyanAccent
+
+                                : Colors
+                                    .white,
+
+                        size: 28,
+                      ),
+
+                      title:
+                          Text(
+
+                        item['title'],
+
+                        style:
+                            GoogleFonts.poppins(
+
+                          color:
+                              selected
+
+                                  ? Colors
+                                      .cyanAccent
+
+                                  : Colors
+                                      .white,
+
+                          fontSize: 18,
+
+                          fontWeight:
+                              selected
+
+                                  ? FontWeight.bold
+
+                                  : FontWeight.normal,
+                        ),
+                      ),
+
+                      onTap:
+                          () {
+
+                        setState(() {
+
+                          selectedIndex =
+                              index;
+                        });
+
+                        if (isMobile) {
+
+                          Navigator.pop(
+                            context,
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          const Divider(
+            color:
+                Colors.white24,
+          ),
+
+          ListTile(
+
+            leading: const Icon(
+
+              Icons.logout,
+
+              color:
+                  Colors.white,
+            ),
+
+            title: Text(
+
+              'Logout',
+
+              style:
+                  GoogleFonts.poppins(
+                color:
+                    Colors.white,
+              ),
+            ),
+
+            onTap:
+                () async {
+
+              await AuthService.logout();
+
+              if (!mounted) {
+                return;
+              }
+
+              Navigator.pushAndRemoveUntil(
+
+                context,
+
+                MaterialPageRoute(
+
+                  builder:
+                      (_) =>
+                          const LoginPage(),
+                ),
+
+                (route) => false,
+              );
+            },
+          ),
+
+          const SizedBox(
+            height: 20,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =====================================================
+  // BUILD
+  // =====================================================
+
   @override
   Widget build(BuildContext context) {
+
+    final isMobile =
+        MediaQuery.of(context)
+                .size
+                .width <
+            900;
 
     return Scaffold(
 
       backgroundColor:
           const Color(0xff071227),
 
+      drawer:
+          isMobile
+
+              ? Drawer(
+
+                  backgroundColor:
+                      const Color(
+                    0xff16243d,
+                  ),
+
+                  child: buildSidebar(
+                    isMobile: true,
+                  ),
+                )
+
+              : null,
+
       body: Row(
 
         children: [
 
           // ======================
-          // SIDEBAR
+          // DESKTOP SIDEBAR
           // ======================
 
-          Container(
+          if (!isMobile)
 
-            width: 300,
+            SizedBox(
 
-            color:
-                const Color(0xff16243d),
+              width: 300,
 
-            child: Column(
-
-              children: [
-
-                const SizedBox(
-                  height: 50,
-                ),
-
-                const Icon(
-
-                  Icons.local_hospital_rounded,
-
-                  color:
-                      Colors.cyanAccent,
-
-                  size: 70,
-                ),
-
-                const SizedBox(
-                  height: 20,
-                ),
-
-                Text(
-
-                  'Clinical Admin',
-
-                  style:
-                      GoogleFonts.poppins(
-
-                    color:
-                        Colors.white,
-
-                    fontSize: 32,
-
-                    fontWeight:
-                        FontWeight.bold,
-                  ),
-                ),
-
-                const SizedBox(
-                  height: 40,
-                ),
-
-                Expanded(
-
-                  child:
-                      ListView.builder(
-
-                    itemCount:
-                        menuItems.length,
-
-                    itemBuilder:
-                        (
-                      context,
-                      index,
-                    ) {
-
-                      final item =
-                          menuItems[index];
-
-                      final selected =
-                          selectedIndex ==
-                              index;
-
-                      return Padding(
-
-                        padding:
-                            const EdgeInsets.symmetric(
-
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-
-                        child:
-                            AnimatedContainer(
-
-                          duration:
-                              const Duration(
-                            milliseconds: 250,
-                          ),
-
-                          decoration:
-                              BoxDecoration(
-
-                            color:
-                                selected
-
-                                    ? Colors.cyanAccent
-                                        .withOpacity(
-                                        0.15,
-                                      )
-
-                                    : Colors.transparent,
-
-                            borderRadius:
-                                BorderRadius.circular(
-                              18,
-                            ),
-                          ),
-
-                          child:
-                              ListTile(
-
-                            leading:
-                                Icon(
-
-                              item['icon'],
-
-                              color:
-                                  selected
-
-                                      ? Colors.cyanAccent
-
-                                      : Colors.white,
-
-                              size: 28,
-                            ),
-
-                            title:
-                                Text(
-
-                              item['title'],
-
-                              style:
-                                  GoogleFonts.poppins(
-
-                                color:
-                                    selected
-
-                                        ? Colors.cyanAccent
-
-                                        : Colors.white,
-
-                                fontSize: 18,
-
-                                fontWeight:
-                                    selected
-
-                                        ? FontWeight.bold
-
-                                        : FontWeight.normal,
-                              ),
-                            ),
-
-                            onTap:
-                                () {
-
-                              setState(() {
-
-                                selectedIndex =
-                                    index;
-                              });
-                            },
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-                const Divider(
-                  color:
-                      Colors.white24,
-                ),
-
-                ListTile(
-
-                  leading: const Icon(
-
-                    Icons.logout,
-
-                    color:
-                        Colors.white,
-                  ),
-
-                  title: Text(
-
-                    'Logout',
-
-                    style:
-                        GoogleFonts.poppins(
-                      color:
-                          Colors.white,
-                    ),
-                  ),
-
-                  onTap:
-                      () async {
-
-                    await AuthService.logout();
-
-                    if (!mounted) {
-                      return;
-                    }
-
-                    Navigator.pushAndRemoveUntil(
-
-                      context,
-
-                      MaterialPageRoute(
-
-                        builder:
-                            (_) =>
-                                const LoginPage(),
-                      ),
-
-                      (route) => false,
-                    );
-                  },
-                ),
-
-                const SizedBox(
-                  height: 20,
-                ),
-              ],
+              child: buildSidebar(),
             ),
-          ),
 
           // ======================
           // CONTENT
@@ -340,16 +399,96 @@ class _AdminDashboardPageState
 
           Expanded(
 
-            child:
-                AnimatedSwitcher(
+            child: Column(
 
-              duration:
-                  const Duration(
-                milliseconds: 300,
-              ),
+              children: [
 
-              child:
-                  pages[selectedIndex],
+                // ======================
+                // MOBILE APPBAR
+                // ======================
+
+                if (isMobile)
+
+                  Container(
+
+                    height: 70,
+
+                    padding:
+                        const EdgeInsets.symmetric(
+                      horizontal: 20,
+                    ),
+
+                    child: Row(
+
+                      children: [
+
+                        Builder(
+
+                          builder: (
+                            context,
+                          ) {
+
+                            return IconButton(
+
+                              onPressed: () {
+
+                                Scaffold.of(
+                                  context,
+                                ).openDrawer();
+                              },
+
+                              icon: const Icon(
+
+                                Icons.menu_rounded,
+
+                                color:
+                                    Colors.white,
+
+                                size: 30,
+                              ),
+                            );
+                          },
+                        ),
+
+                        const SizedBox(
+                          width: 12,
+                        ),
+
+                        Text(
+
+                          'Clinical Admin',
+
+                          style:
+                              GoogleFonts.poppins(
+
+                            color:
+                                Colors.white,
+
+                            fontSize: 22,
+
+                            fontWeight:
+                                FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                Expanded(
+
+                  child:
+                      AnimatedSwitcher(
+
+                    duration:
+                        const Duration(
+                      milliseconds: 300,
+                    ),
+
+                    child:
+                        pages[selectedIndex],
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -472,6 +611,12 @@ class DashboardHome
   @override
   Widget build(BuildContext context) {
 
+    final isMobile =
+        MediaQuery.of(context)
+                .size
+                .width <
+            900;
+
     return SingleChildScrollView(
 
       padding:
@@ -496,7 +641,10 @@ class DashboardHome
               color:
                   Colors.white,
 
-              fontSize: 40,
+              fontSize:
+                  isMobile
+                      ? 28
+                      : 40,
 
               fontWeight:
                   FontWeight.bold,
@@ -525,77 +673,89 @@ class DashboardHome
             height: 35,
           ),
 
-          SizedBox(
+          Wrap(
 
-            height: 220,
+            spacing: 20,
 
-            child: Row(
+            runSpacing: 20,
 
-              children: [
+            children: [
 
-                Expanded(
+              SizedBox(
 
-                  child:
-                      dashboardCard(
+                width:
+                    isMobile
+                        ? double.infinity
+                        : 320,
 
-                    icon:
-                        Icons.medication_rounded,
+                height: 220,
 
-                    title:
-                        'Total Drugs',
+                child:
+                    dashboardCard(
 
-                    value: '128',
+                  icon:
+                      Icons.medication_rounded,
 
-                    color:
-                        Colors.cyanAccent,
-                  ),
+                  title:
+                      'Total Drugs',
+
+                  value: '128',
+
+                  color:
+                      Colors.cyanAccent,
                 ),
+              ),
 
-                const SizedBox(
-                  width: 20,
+              SizedBox(
+
+                width:
+                    isMobile
+                        ? double.infinity
+                        : 320,
+
+                height: 220,
+
+                child:
+                    dashboardCard(
+
+                  icon:
+                      Icons.people_alt_rounded,
+
+                  title:
+                      'Users',
+
+                  value: '42',
+
+                  color:
+                      Colors.orangeAccent,
                 ),
+              ),
 
-                Expanded(
+              SizedBox(
 
-                  child:
-                      dashboardCard(
+                width:
+                    isMobile
+                        ? double.infinity
+                        : 320,
 
-                    icon:
-                        Icons.people_alt_rounded,
+                height: 220,
 
-                    title:
-                        'Users',
+                child:
+                    dashboardCard(
 
-                    value: '42',
+                  icon:
+                      Icons.receipt_long_rounded,
 
-                    color:
-                        Colors.orangeAccent,
-                  ),
+                  title:
+                      'Prescriptions',
+
+                  value: '560',
+
+                  color:
+                      Colors.greenAccent,
                 ),
-
-                const SizedBox(
-                  width: 20,
-                ),
-
-                Expanded(
-
-                  child:
-                      dashboardCard(
-
-                    icon:
-                        Icons.receipt_long_rounded,
-
-                    title:
-                        'Prescriptions',
-
-                    value: '560',
-
-                    color:
-                        Colors.greenAccent,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
 
           const SizedBox(
