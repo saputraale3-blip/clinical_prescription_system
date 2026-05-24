@@ -19,9 +19,8 @@ class AdminDashboardPage extends StatefulWidget {
   });
 
   @override
-  State<AdminDashboardPage>
-      createState() =>
-          _AdminDashboardPageState();
+  State<AdminDashboardPage> createState() =>
+      _AdminDashboardPageState();
 }
 
 class _AdminDashboardPageState
@@ -124,16 +123,19 @@ class _AdminDashboardPageState
             color:
                 Colors.cyanAccent,
 
-            size: 70,
+            size: 60,
           ),
 
           const SizedBox(
-            height: 20,
+            height: 18,
           ),
 
           Text(
 
             'Clinical Admin',
+
+            textAlign:
+                TextAlign.center,
 
             style:
                 GoogleFonts.poppins(
@@ -141,7 +143,8 @@ class _AdminDashboardPageState
               color:
                   Colors.white,
 
-              fontSize: 32,
+              fontSize:
+                  isMobile ? 26 : 30,
 
               fontWeight:
                   FontWeight.bold,
@@ -149,7 +152,7 @@ class _AdminDashboardPageState
           ),
 
           const SizedBox(
-            height: 40,
+            height: 35,
           ),
 
           Expanded(
@@ -177,7 +180,6 @@ class _AdminDashboardPageState
 
                   padding:
                       const EdgeInsets.symmetric(
-
                     horizontal: 12,
                     vertical: 6,
                   ),
@@ -196,14 +198,12 @@ class _AdminDashboardPageState
                       color:
                           selected
 
-                              ? Colors
-                                  .cyanAccent
+                              ? Colors.cyanAccent
                                   .withOpacity(
                                   0.15,
                                 )
 
-                              : Colors
-                                  .transparent,
+                              : Colors.transparent,
 
                       borderRadius:
                           BorderRadius.circular(
@@ -228,7 +228,7 @@ class _AdminDashboardPageState
                                 : Colors
                                     .white,
 
-                        size: 28,
+                        size: 26,
                       ),
 
                       title:
@@ -248,7 +248,7 @@ class _AdminDashboardPageState
                                   : Colors
                                       .white,
 
-                          fontSize: 18,
+                          fontSize: 16,
 
                           fontWeight:
                               selected
@@ -259,8 +259,7 @@ class _AdminDashboardPageState
                         ),
                       ),
 
-                      onTap:
-                          () {
+                      onTap: () {
 
                         setState(() {
 
@@ -348,11 +347,13 @@ class _AdminDashboardPageState
   @override
   Widget build(BuildContext context) {
 
-    final isMobile =
+    final screenWidth =
         MediaQuery.of(context)
-                .size
-                .width <
-            900;
+            .size
+            .width;
+
+    final bool isMobile =
+        screenWidth < 800;
 
     return Scaffold(
 
@@ -369,7 +370,8 @@ class _AdminDashboardPageState
                     0xff16243d,
                   ),
 
-                  child: buildSidebar(
+                  child:
+                      buildSidebar(
                     isMobile: true,
                   ),
                 )
@@ -388,9 +390,10 @@ class _AdminDashboardPageState
 
             SizedBox(
 
-              width: 300,
+              width: 250,
 
-              child: buildSidebar(),
+              child:
+                  buildSidebar(),
             ),
 
           // ======================
@@ -404,18 +407,22 @@ class _AdminDashboardPageState
               children: [
 
                 // ======================
-                // MOBILE APPBAR
+                // MOBILE TOPBAR
                 // ======================
 
                 if (isMobile)
 
                   Container(
 
-                    height: 70,
-
                     padding:
                         const EdgeInsets.symmetric(
-                      horizontal: 20,
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+
+                    color:
+                        const Color(
+                      0xff16243d,
                     ),
 
                     child: Row(
@@ -424,11 +431,17 @@ class _AdminDashboardPageState
 
                         Builder(
 
-                          builder: (
-                            context,
-                          ) {
+                          builder: (context) {
 
                             return IconButton(
+
+                              icon: const Icon(
+
+                                Icons.menu,
+
+                                color:
+                                    Colors.white,
+                              ),
 
                               onPressed: () {
 
@@ -436,22 +449,12 @@ class _AdminDashboardPageState
                                   context,
                                 ).openDrawer();
                               },
-
-                              icon: const Icon(
-
-                                Icons.menu_rounded,
-
-                                color:
-                                    Colors.white,
-
-                                size: 30,
-                              ),
                             );
                           },
                         ),
 
                         const SizedBox(
-                          width: 12,
+                          width: 10,
                         ),
 
                         Text(
@@ -464,7 +467,7 @@ class _AdminDashboardPageState
                             color:
                                 Colors.white,
 
-                            fontSize: 22,
+                            fontSize: 20,
 
                             fontWeight:
                                 FontWeight.bold,
@@ -611,17 +614,19 @@ class DashboardHome
   @override
   Widget build(BuildContext context) {
 
-    final isMobile =
+    final screenWidth =
         MediaQuery.of(context)
-                .size
-                .width <
-            900;
+            .size
+            .width;
+
+    final bool isMobile =
+        screenWidth < 800;
 
     return SingleChildScrollView(
 
       padding:
-          const EdgeInsets.all(
-        35,
+          EdgeInsets.all(
+        isMobile ? 20 : 35,
       ),
 
       child: Column(
@@ -642,9 +647,7 @@ class DashboardHome
                   Colors.white,
 
               fontSize:
-                  isMobile
-                      ? 28
-                      : 40,
+                  isMobile ? 28 : 40,
 
               fontWeight:
                   FontWeight.bold,
@@ -665,7 +668,8 @@ class DashboardHome
               color:
                   Colors.white54,
 
-              fontSize: 18,
+              fontSize:
+                  isMobile ? 14 : 18,
             ),
           ),
 
@@ -673,90 +677,154 @@ class DashboardHome
             height: 35,
           ),
 
-          Wrap(
+          isMobile
 
-            spacing: 20,
+              ? Column(
 
-            runSpacing: 20,
+                  children: [
 
-            children: [
+                    SizedBox(
 
-              SizedBox(
+                      height: 180,
 
-                width:
-                    isMobile
-                        ? double.infinity
-                        : 320,
+                      child:
+                          dashboardCard(
 
-                height: 220,
+                        icon:
+                            Icons.medication_rounded,
 
-                child:
-                    dashboardCard(
+                        title:
+                            'Total Drugs',
 
-                  icon:
-                      Icons.medication_rounded,
+                        value: '128',
 
-                  title:
-                      'Total Drugs',
+                        color:
+                            Colors.cyanAccent,
+                      ),
+                    ),
 
-                  value: '128',
+                    const SizedBox(
+                      height: 20,
+                    ),
 
-                  color:
-                      Colors.cyanAccent,
+                    SizedBox(
+
+                      height: 180,
+
+                      child:
+                          dashboardCard(
+
+                        icon:
+                            Icons.people_alt_rounded,
+
+                        title:
+                            'Users',
+
+                        value: '42',
+
+                        color:
+                            Colors.orangeAccent,
+                      ),
+                    ),
+
+                    const SizedBox(
+                      height: 20,
+                    ),
+
+                    SizedBox(
+
+                      height: 180,
+
+                      child:
+                          dashboardCard(
+
+                        icon:
+                            Icons.receipt_long_rounded,
+
+                        title:
+                            'Prescriptions',
+
+                        value: '560',
+
+                        color:
+                            Colors.greenAccent,
+                      ),
+                    ),
+                  ],
+                )
+
+              : SizedBox(
+
+                  height: 220,
+
+                  child: Row(
+
+                    children: [
+
+                      Expanded(
+
+                        child:
+                            dashboardCard(
+
+                          icon:
+                              Icons.medication_rounded,
+
+                          title:
+                              'Total Drugs',
+
+                          value: '128',
+
+                          color:
+                              Colors.cyanAccent,
+                        ),
+                      ),
+
+                      const SizedBox(
+                        width: 20,
+                      ),
+
+                      Expanded(
+
+                        child:
+                            dashboardCard(
+
+                          icon:
+                              Icons.people_alt_rounded,
+
+                          title:
+                              'Users',
+
+                          value: '42',
+
+                          color:
+                              Colors.orangeAccent,
+                        ),
+                      ),
+
+                      const SizedBox(
+                        width: 20,
+                      ),
+
+                      Expanded(
+
+                        child:
+                            dashboardCard(
+
+                          icon:
+                              Icons.receipt_long_rounded,
+
+                          title:
+                              'Prescriptions',
+
+                          value: '560',
+
+                          color:
+                              Colors.greenAccent,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-
-              SizedBox(
-
-                width:
-                    isMobile
-                        ? double.infinity
-                        : 320,
-
-                height: 220,
-
-                child:
-                    dashboardCard(
-
-                  icon:
-                      Icons.people_alt_rounded,
-
-                  title:
-                      'Users',
-
-                  value: '42',
-
-                  color:
-                      Colors.orangeAccent,
-                ),
-              ),
-
-              SizedBox(
-
-                width:
-                    isMobile
-                        ? double.infinity
-                        : 320,
-
-                height: 220,
-
-                child:
-                    dashboardCard(
-
-                  icon:
-                      Icons.receipt_long_rounded,
-
-                  title:
-                      'Prescriptions',
-
-                  value: '560',
-
-                  color:
-                      Colors.greenAccent,
-                ),
-              ),
-            ],
-          ),
 
           const SizedBox(
             height: 35,
@@ -764,7 +832,10 @@ class DashboardHome
 
           Container(
 
-            height: 400,
+            height:
+                isMobile
+                    ? 300
+                    : 400,
 
             padding:
                 const EdgeInsets.all(
@@ -774,7 +845,9 @@ class DashboardHome
             decoration: BoxDecoration(
 
               color:
-                  const Color(0xff16243d),
+                  const Color(
+                0xff16243d,
+              ),
 
               borderRadius:
                   BorderRadius.circular(
@@ -799,7 +872,10 @@ class DashboardHome
                     color:
                         Colors.white,
 
-                    fontSize: 24,
+                    fontSize:
+                        isMobile
+                            ? 20
+                            : 24,
 
                     fontWeight:
                         FontWeight.bold,
