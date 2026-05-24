@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseService {
@@ -6,30 +7,30 @@ class SupabaseService {
       Supabase.instance.client;
 
   // =====================================================
-  // GET ALL DRUGS
+  // GET GENERAL DRUGS
   // =====================================================
 
   static Future<List<Map<String, dynamic>>>
       getDrugs() async {
 
-    final general =
-        await supabase
-            .from('drugs')
-            .select();
+    try {
 
-    final pediatric =
-        await supabase
-            .from('pediatric_drugs')
-            .select();
+      final response =
+          await supabase
+              .from('drugs')
+              .select();
 
-    return [
+      return List<Map<String, dynamic>>
+          .from(response);
 
-      ...List<Map<String, dynamic>>
-          .from(general),
+    } catch (e) {
 
-      ...List<Map<String, dynamic>>
-          .from(pediatric),
-    ];
+      debugPrint(
+        'GET DRUGS ERROR: $e',
+      );
+
+      return [];
+    }
   }
 
   // =====================================================
@@ -39,13 +40,24 @@ class SupabaseService {
   static Future<List<Map<String, dynamic>>>
       getPediatricDrugs() async {
 
-    final response =
-        await supabase
-            .from('pediatric_drugs')
-            .select();
+    try {
 
-    return List<Map<String, dynamic>>
-        .from(response);
+      final response =
+          await supabase
+              .from('pediatric_drugs')
+              .select();
+
+      return List<Map<String, dynamic>>
+          .from(response);
+
+    } catch (e) {
+
+      debugPrint(
+        'GET PEDIATRIC DRUGS ERROR: $e',
+      );
+
+      return [];
+    }
   }
 
   // =====================================================
@@ -90,18 +102,51 @@ class SupabaseService {
 
   }) async {
 
-    // =================================================
-    // PEDIATRIC
-    // =================================================
+    try {
 
-    if (drugType.toLowerCase() ==
-        'pediatric') {
+      // =================================================
+      // PEDIATRIC
+      // =================================================
+
+      if (drugType == 'pediatric') {
+
+        await supabase
+            .from('pediatric_drugs')
+            .insert({
+
+          'name': name,
+
+          'category': category,
+
+          'dosage_form': dosageForm,
+
+          'frequency': frequency,
+
+          'mg_per_kg_min': mgPerKgMin,
+
+          'mg_per_kg_max': mgPerKgMax,
+
+          'syrup_mg': syrupMg,
+
+          'syrup_ml': syrupMl,
+
+          'note': note,
+        });
+
+        return;
+      }
+
+      // =================================================
+      // GENERAL DRUG DATABASE
+      // =================================================
 
       await supabase
-          .from('pediatric_drugs')
+          .from('drugs')
           .insert({
 
         'name': name,
+
+        'generic_name': genericName,
 
         'category': category,
 
@@ -111,70 +156,25 @@ class SupabaseService {
 
         'frequency': frequency,
 
-        'mg_per_kg_min':
-            mgPerKgMin,
+        'frequency_signa': frequencySigna,
 
-        'mg_per_kg_max':
-            mgPerKgMax,
+        'signa_unit': signaUnit,
 
-        'syrup_mg':
-            syrupMg,
+        'signa_note': signaNote,
 
-        'syrup_ml':
-            syrupMl,
+        'qty_default': qtyDefault,
+
+        'prescription_template': prescription,
 
         'note': note,
       });
 
-      return;
+    } catch (e) {
+
+      debugPrint(
+        'ADD DRUG ERROR: $e',
+      );
     }
-
-    // =================================================
-    // GENERAL DRUG DATABASE
-    // =================================================
-
-    await supabase
-        .from('drugs')
-        .insert({
-
-      'name': name,
-
-      'generic_name':
-          genericName,
-
-      'category':
-          category,
-
-      'dosage_form':
-          dosageForm,
-
-      'dose':
-          dose,
-
-      'frequency':
-          frequency,
-
-      'frequency_signa':
-          frequencySigna,
-
-      'signa_unit':
-          signaUnit,
-
-      'signa_note':
-          signaNote,
-
-      'qty_default':
-          qtyDefault,
-
-      'prescription_template':
-          prescription,
-
-      'note':
-          note,
-
-      'drug_type':
-          'drug database',
-    });
   }
 
   // =====================================================
@@ -185,170 +185,93 @@ class SupabaseService {
 
     required int id,
 
-    required String name,
+    required String table,
 
-    required String genericName,
-
-    required String category,
-
-    required String dosageForm,
-
-    required String dose,
-
-    required String frequency,
-
-    String frequencySigna = '',
-
-    String signaUnit = '',
-
-    String signaNote = '',
-
-    int qtyDefault = 10,
-
-    required String prescription,
-
-    required String note,
-
-    required String drugType,
-
-    double mgPerKgMin = 0,
-
-    double mgPerKgMax = 0,
-
-    double syrupMg = 0,
-
-    double syrupMl = 0,
+    required Map<String, dynamic> data,
 
   }) async {
 
-    // =================================================
-    // PEDIATRIC
-    // =================================================
-
-    if (drugType.toLowerCase() ==
-        'pediatric') {
+    try {
 
       await supabase
-          .from('pediatric_drugs')
-          .update({
+          .from(table)
+          .update(data)
+          .eq('id', id);
 
-        'name': name,
+    } catch (e) {
 
-        'category': category,
-
-        'dosage_form':
-            dosageForm,
-
-        'dose': dose,
-
-        'frequency':
-            frequency,
-
-        'mg_per_kg_min':
-            mgPerKgMin,
-
-        'mg_per_kg_max':
-            mgPerKgMax,
-
-        'syrup_mg':
-            syrupMg,
-
-        'syrup_ml':
-            syrupMl,
-
-        'note': note,
-
-      }).eq('id', id);
-
-      return;
+      debugPrint(
+        'UPDATE DRUG ERROR: $e',
+      );
     }
-
-    // =================================================
-    // GENERAL DRUG DATABASE
-    // =================================================
-
-    await supabase
-        .from('drugs')
-        .update({
-
-      'name': name,
-
-      'generic_name':
-          genericName,
-
-      'category':
-          category,
-
-      'dosage_form':
-          dosageForm,
-
-      'dose':
-          dose,
-
-      'frequency':
-          frequency,
-
-      'frequency_signa':
-          frequencySigna,
-
-      'signa_unit':
-          signaUnit,
-
-      'signa_note':
-          signaNote,
-
-      'qty_default':
-          qtyDefault,
-
-      'prescription_template':
-          prescription,
-
-      'note':
-          note,
-
-    }).eq('id', id);
   }
 
   // =====================================================
   // DELETE DRUG
   // =====================================================
 
-  static Future<void>
-      deleteDrug({
+  static Future<void> deleteDrug({
 
     required int id,
 
-    required bool isPediatric,
+    required String table,
 
   }) async {
 
-    final table =
-        isPediatric
-            ? 'pediatric_drugs'
-            : 'drugs';
+    try {
 
-    await supabase
-        .from(table)
-        .delete()
-        .eq('id', id);
+      await supabase
+          .from(table)
+          .delete()
+          .eq('id', id);
+
+    } catch (e) {
+
+      debugPrint(
+        'DELETE DRUG ERROR: $e',
+      );
+    }
   }
 
   // =====================================================
-  // USERS
+  // GET USERS
   // =====================================================
 
   static Future<List<Map<String, dynamic>>>
       getUsers() async {
 
-    final response =
-        await supabase
-            .from('profiles')
-            .select()
-            .order('created_at');
+    try {
 
-    return List<Map<String, dynamic>>
-        .from(response);
+      final response =
+          await supabase
+              .from('profiles')
+              .select('*')
+              .order('username');
+
+      final data =
+          List<Map<String, dynamic>>.from(
+        response,
+      );
+
+      debugPrint(
+        'USERS DATA: $data',
+      );
+
+      return data;
+
+    } catch (e) {
+
+      debugPrint(
+        'GET USERS ERROR: $e',
+      );
+
+      return [];
+    }
   }
+
+  // =====================================================
+  // UPDATE USER ROLE
+  // =====================================================
 
   static Future<void>
       updateUserRole({
@@ -359,17 +282,32 @@ class SupabaseService {
 
   }) async {
 
-    await supabase
-        .from('profiles')
-        .update({
+    try {
 
-      'role':
-          isAdmin
-              ? 'admin'
-              : 'user',
+      await supabase
+          .from('profiles')
+          .update({
 
-    }).eq('id', userId);
+        'is_admin': isAdmin,
+
+        'role':
+            isAdmin
+                ? 'admin'
+                : 'user',
+
+      }).eq('id', userId);
+
+    } catch (e) {
+
+      debugPrint(
+        'UPDATE USER ROLE ERROR: $e',
+      );
+    }
   }
+
+  // =====================================================
+  // APPROVE USER
+  // =====================================================
 
   static Future<void>
       approveUser({
@@ -380,15 +318,27 @@ class SupabaseService {
 
   }) async {
 
-    await supabase
-        .from('profiles')
-        .update({
+    try {
 
-      'approved':
-          approved,
+      await supabase
+          .from('profiles')
+          .update({
 
-    }).eq('id', userId);
+        'approved': approved,
+
+      }).eq('id', userId);
+
+    } catch (e) {
+
+      debugPrint(
+        'APPROVE USER ERROR: $e',
+      );
+    }
   }
+
+  // =====================================================
+  // DELETE USER
+  // =====================================================
 
   static Future<void>
       deleteUser({
@@ -397,9 +347,18 @@ class SupabaseService {
 
   }) async {
 
-    await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userId);
+    try {
+
+      await supabase
+          .from('profiles')
+          .delete()
+          .eq('id', userId);
+
+    } catch (e) {
+
+      debugPrint(
+        'DELETE USER ERROR: $e',
+      );
+    }
   }
 }

@@ -116,6 +116,8 @@ class _AddDrugPageState
     'gtt',
 
     'ung',
+
+    '-',
   ];
 
   final signaNoteList = [
