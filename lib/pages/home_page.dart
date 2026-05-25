@@ -10,6 +10,8 @@ import 'drug_database_page.dart';
 import 'login_page.dart';
 import 'pediatric_dose_page.dart';
 import 'prescription_page.dart';
+import 'ai_clinical_assistant_page.dart';
+import 'ai_chat_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -28,6 +30,8 @@ class _HomePageState
     const DrugDatabasePage(),
     const PediatricDosePage(),
     const PrescriptionPage(),
+    const AIClinicalAssistantPage(),
+    const AIChatPage(),
   ];
 
   final List<Map<String, dynamic>>
@@ -50,6 +54,14 @@ class _HomePageState
       'title': 'Prescription',
       'icon':
           Icons.receipt_long_rounded,
+    },
+    {
+      'title': 'AI Assistant',
+      'icon': Icons.auto_awesome_rounded,
+    },
+    {
+      'title': 'AI Chat',
+      'icon': Icons.auto_awesome_rounded,
     },
   ];
 
