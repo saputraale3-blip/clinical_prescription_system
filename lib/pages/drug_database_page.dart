@@ -14,10 +14,10 @@ class DrugDatabasePage extends StatefulWidget {
 
 class _DrugDatabasePageState
     extends State<DrugDatabasePage> {
+
   List<Map<String, dynamic>> drugs = [];
 
-  List<Map<String, dynamic>>
-      filteredDrugs = [];
+  List<Map<String, dynamic>> filteredDrugs = [];
 
   List<String> categories = [];
 
@@ -26,6 +26,44 @@ class _DrugDatabasePageState
   Map<String, dynamic>? selectedDrug;
 
   bool isLoading = true;
+
+  // =========================================
+  // ROMAN FUNCTION
+  // =========================================
+
+  String toRoman(int number) {
+
+    const romans = {
+
+      1000: 'M',
+      900: 'CM',
+      500: 'D',
+      400: 'CD',
+      100: 'C',
+      90: 'XC',
+      50: 'L',
+      40: 'XL',
+      10: 'X',
+      9: 'IX',
+      5: 'V',
+      4: 'IV',
+      1: 'I',
+    };
+
+    String result = '';
+
+    romans.forEach((value, symbol) {
+
+      while (number >= value) {
+
+        result += symbol;
+
+        number -= value;
+      }
+    });
+
+    return result;
+  }
 
   @override
   void initState() {
@@ -423,10 +461,13 @@ class _DrugDatabasePageState
         drug['signa_note'] ??
             '';
 
-    final qty =
-        drug['qty_default']
-            ?.toString() ??
-            '10';
+    final qty = int.tryParse(
+        drug['usual_qty'].toString(),
+      ) ??
+      10;
+
+    final romanQty =
+        toRoman(qty);
 
     String formText = '';
 
@@ -446,13 +487,24 @@ class _DrugDatabasePageState
       formText = dosageForm;
     }
 
+String qtyText = '';
+
+if (dosageForm.contains('syrup') ||
+    dosageForm.contains('cream')) {
+
+  qtyText = '$formText I';
+
+} else {
+
+  qtyText = '$formText No. $romanQty';
+}
     return '''
 
 R/
 
 ${drug['name']} ${drug['dose']}
 
-$formText No. $qty
+$qtyText
 
 S $frequency $unit I $note
 

@@ -25,6 +25,12 @@ class _HomePageState
     extends State<HomePage> {
   int selectedIndex = 0;
 
+  bool isDark(BuildContext context) {
+    return Theme.of(context)
+            .brightness ==
+        Brightness.dark;
+  }
+
   final List<Widget> pages = [
     const DashboardContent(),
     const DrugDatabasePage(),
@@ -61,7 +67,7 @@ class _HomePageState
     },
     {
       'title': 'AI Chat',
-      'icon': Icons.auto_awesome_rounded,
+      'icon': Icons.smart_toy_rounded,
     },
   ];
 
@@ -72,50 +78,59 @@ class _HomePageState
             .size
             .width;
 
-    final bool isMobile =
+    final bool mobile =
         width < 900;
 
-    return Scaffold(
-      backgroundColor:
-          const Color(0xff030712),
+    final dark = isDark(context);
 
-      drawer: isMobile
+    return Scaffold(
+      backgroundColor: dark
+          ? const Color(0xff030712)
+          : const Color(0xffeef4fb),
+
+      drawer: mobile
           ? Drawer(
-              backgroundColor:
-                  const Color(
-                0xff071120,
-              ),
+              backgroundColor: dark
+                  ? const Color(
+                      0xff071120)
+                  : Colors.white,
               child:
                   buildSidebar(true),
             )
           : null,
 
-      appBar: isMobile
+      appBar: mobile
           ? AppBar(
               elevation: 0,
               backgroundColor:
                   Colors.transparent,
-
-              title: const Text(
+              title: Text(
                 'Clinical Cyber',
                 style: TextStyle(
                   fontWeight:
                       FontWeight.bold,
+                  color: dark
+                      ? Colors.white
+                      : const Color(
+                          0xff0f172a,
+                        ),
                 ),
               ),
-
               actions: [
                 IconButton(
                   onPressed: () {
-                    Provider.of<
-                        ThemeProvider>(
+                    Provider.of<ThemeProvider>(
                       context,
                       listen: false,
                     ).toggleTheme();
                   },
-                  icon: const Icon(
-                    Icons
-                        .dark_mode_rounded,
+                  icon: Icon(
+                    dark
+                        ? Icons.light_mode_rounded
+                        : Icons.dark_mode_rounded,
+                    color: dark
+                        ? Colors.white
+                        : Colors.black,
                   ),
                 ),
               ],
@@ -124,27 +139,41 @@ class _HomePageState
 
       body: Stack(
         children: [
-          // BACKGROUND
-
           Container(
             decoration:
-                const BoxDecoration(
+                BoxDecoration(
               gradient:
                   LinearGradient(
                 begin:
                     Alignment.topLeft,
                 end:
                     Alignment.bottomRight,
-                colors: [
-                  Color(0xff020617),
-                  Color(0xff071227),
-                  Color(0xff0a1931),
-                ],
+                colors: dark
+                    ? [
+                        const Color(
+                          0xff020617,
+                        ),
+                        const Color(
+                          0xff071227,
+                        ),
+                        const Color(
+                          0xff0a1931,
+                        ),
+                      ]
+                    : [
+                        const Color(
+                          0xfff8fbff,
+                        ),
+                        const Color(
+                          0xffeef4fb,
+                        ),
+                        const Color(
+                          0xffdde8f5,
+                        ),
+                      ],
               ),
             ),
           ),
-
-          // CYBER ORBS
 
           Positioned(
             top: -140,
@@ -175,21 +204,19 @@ class _HomePageState
 
           Row(
             children: [
-              if (!isMobile)
+              if (!mobile)
                 Container(
                   width: 300,
                   margin:
                       const EdgeInsets.all(
                     18,
                   ),
-
                   child:
                       ClipRRect(
                     borderRadius:
                         BorderRadius.circular(
                       32,
                     ),
-
                     child:
                         BackdropFilter(
                       filter:
@@ -197,34 +224,37 @@ class _HomePageState
                         sigmaX: 20,
                         sigmaY: 20,
                       ),
-
                       child:
                           Container(
                         decoration:
                             BoxDecoration(
-                          color:
-                              Colors
-                                  .white
+                          color: dark
+                              ? Colors.white
                                   .withOpacity(
-                            0.05,
-                          ),
-
+                                  0.05,
+                                )
+                              : Colors.white
+                                  .withOpacity(
+                                  0.75,
+                                ),
                           borderRadius:
                               BorderRadius.circular(
                             32,
                           ),
-
                           border:
                               Border.all(
-                            color:
-                                Colors
+                            color: dark
+                                ? Colors
                                     .cyanAccent
                                     .withOpacity(
-                              0.15,
-                            ),
+                                    0.15,
+                                  )
+                                : Colors.blue
+                                    .withOpacity(
+                                    0.10,
+                                  ),
                           ),
                         ),
-
                         child:
                             buildSidebar(
                           false,
@@ -241,7 +271,6 @@ class _HomePageState
                       const Duration(
                     milliseconds: 250,
                   ),
-
                   child:
                       IndexedStack(
                     key: ValueKey(
@@ -261,27 +290,25 @@ class _HomePageState
   }
 
   Widget buildSidebar(
-    bool isMobile,
+    bool mobile,
   ) {
+    final dark = isDark(context);
+
     return Column(
       children: [
         const SizedBox(
           height: 45,
         ),
 
-        // LOGO
-
         Container(
           padding:
               const EdgeInsets.all(
             20,
           ),
-
           decoration:
               BoxDecoration(
             shape:
                 BoxShape.circle,
-
             gradient:
                 const LinearGradient(
               colors: [
@@ -289,7 +316,6 @@ class _HomePageState
                 Colors.blueAccent,
               ],
             ),
-
             boxShadow: [
               BoxShadow(
                 color:
@@ -301,7 +327,6 @@ class _HomePageState
               ),
             ],
           ),
-
           child: const Icon(
             Icons
                 .local_hospital_rounded,
@@ -314,11 +339,14 @@ class _HomePageState
           height: 22,
         ),
 
-        const Text(
+        Text(
           'Clinical Cyber',
-
           style: TextStyle(
-            color: Colors.white,
+            color: dark
+                ? Colors.white
+                : const Color(
+                    0xff0f172a,
+                  ),
             fontSize: 28,
             fontWeight:
                 FontWeight.bold,
@@ -331,13 +359,13 @@ class _HomePageState
 
         Text(
           'AI Medical Dashboard',
-
           style: TextStyle(
-            color:
-                Colors.white
+            color: dark
+                ? Colors.white
                     .withOpacity(
-              0.55,
-            ),
+                    0.55,
+                  )
+                : Colors.black54,
           ),
         ),
 
@@ -345,12 +373,10 @@ class _HomePageState
           height: 40,
         ),
 
-        // MENU
-
         Expanded(
           child: ListView.builder(
-            itemCount: menu.length,
-
+            itemCount:
+                menu.length,
             itemBuilder:
                 (context, index) {
               final item =
@@ -366,21 +392,18 @@ class _HomePageState
                   horizontal: 14,
                   vertical: 8,
                 ),
-
                 child:
                     AnimatedContainer(
                   duration:
                       const Duration(
                     milliseconds: 220,
                   ),
-
                   decoration:
                       BoxDecoration(
                     borderRadius:
                         BorderRadius.circular(
                       22,
                     ),
-
                     gradient:
                         selected
                             ? const LinearGradient(
@@ -394,84 +417,72 @@ class _HomePageState
                                 ],
                               )
                             : null,
-
                     color:
                         selected
                             ? null
                             : Colors
                                 .transparent,
-
-                    boxShadow:
-                        selected
-                            ? [
-                                BoxShadow(
-                                  color: Colors
-                                      .cyanAccent
-                                      .withOpacity(
-                                    0.25,
-                                  ),
-                                  blurRadius:
-                                      22,
-                                ),
-                              ]
-                            : [],
                   ),
-
                   child:
                       ListTile(
                     dense: true,
-
                     leading:
                         Container(
                       padding:
                           const EdgeInsets.all(
                         10,
                       ),
-
                       decoration:
                           BoxDecoration(
                         borderRadius:
                             BorderRadius.circular(
                           14,
                         ),
-
                         color:
                             Colors
                                 .white
                                 .withOpacity(
-                          0.10,
+                          selected
+                              ? 0.15
+                              : dark
+                                  ? 0.10
+                                  : 0.80,
                         ),
                       ),
-
                       child: Icon(
                         item['icon'],
-                        color:
-                            Colors
-                                .white,
+                        color: selected
+                            ? Colors.white
+                            : dark
+                                ? Colors.white
+                                : const Color(
+                                    0xff0f172a,
+                                  ),
                       ),
                     ),
-
                     title: Text(
                       item['title'],
-
                       style:
-                          const TextStyle(
-                        color:
-                            Colors
-                                .white,
+                          TextStyle(
+                        color: selected
+                            ? Colors.white
+                            : dark
+                                ? Colors.white
+                                : const Color(
+                                    0xff0f172a,
+                                  ),
                         fontWeight:
                             FontWeight
                                 .w600,
                       ),
                     ),
-
                     onTap: () {
                       setState(() {
                         selectedIndex =
                             index;
                       });
 
-                      if (isMobile) {
+                      if (mobile) {
                         Navigator.pop(
                           context,
                         );
@@ -484,27 +495,33 @@ class _HomePageState
           ),
         ),
 
-        const Divider(
-          color: Colors.white12,
+        Divider(
+          color: dark
+              ? Colors.white12
+              : Colors.black12,
         ),
 
         ListTile(
-          leading: const Icon(
-            Icons.dark_mode_rounded,
-            color: Colors.white,
+          leading: Icon(
+            dark
+                ? Icons.light_mode_rounded
+                : Icons.dark_mode_rounded,
+            color: dark
+                ? Colors.white
+                : Colors.black,
           ),
-
-          title: const Text(
-            'Theme',
-
+          title: Text(
+            dark
+                ? 'Light Mode'
+                : 'Dark Mode',
             style: TextStyle(
-              color: Colors.white,
+              color: dark
+                  ? Colors.white
+                  : Colors.black,
             ),
           ),
-
           onTap: () {
-            Provider.of<
-                ThemeProvider>(
+            Provider.of<ThemeProvider>(
               context,
               listen: false,
             ).toggleTheme();
@@ -512,19 +529,20 @@ class _HomePageState
         ),
 
         ListTile(
-          leading: const Icon(
+          leading: Icon(
             Icons.logout_rounded,
-            color: Colors.white,
+            color: dark
+                ? Colors.white
+                : Colors.black,
           ),
-
-          title: const Text(
+          title: Text(
             'Logout',
-
             style: TextStyle(
-              color: Colors.white,
+              color: dark
+                  ? Colors.white
+                  : Colors.black,
             ),
           ),
-
           onTap: () async {
             await AuthService.logout();
 
@@ -532,13 +550,10 @@ class _HomePageState
 
             Navigator.pushAndRemoveUntil(
               context,
-
               MaterialPageRoute(
-                builder:
-                    (_) =>
-                        const LoginPage(),
+                builder: (_) =>
+                    const LoginPage(),
               ),
-
               (route) => false,
             );
           },
@@ -558,7 +573,6 @@ class _HomePageState
     return Container(
       width: size,
       height: size,
-
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color:
@@ -568,10 +582,6 @@ class _HomePageState
   }
 }
 
-// =====================================================
-// DASHBOARD
-// =====================================================
-
 class DashboardContent
     extends StatelessWidget {
   const DashboardContent({
@@ -580,680 +590,23 @@ class DashboardContent
 
   @override
   Widget build(BuildContext context) {
-    final width =
-        MediaQuery.of(context)
-            .size
-            .width;
+    final dark =
+        Theme.of(context)
+                .brightness ==
+            Brightness.dark;
 
-    final bool isMobile =
-        width < 700;
-
-    int crossAxisCount = 2;
-
-    if (width > 1400) {
-      crossAxisCount = 4;
-    } else if (width > 900) {
-      crossAxisCount = 3;
-    }
-
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(
-        isMobile ? 18 : 30,
-      ),
-
-      child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
-
-        children: [
-          // HERO
-
-          ClipRRect(
-            borderRadius:
-                BorderRadius.circular(
-              36,
-            ),
-
-            child: BackdropFilter(
-              filter:
-                  ImageFilter.blur(
-                sigmaX: 18,
-                sigmaY: 18,
-              ),
-
-              child: Container(
-                width: double.infinity,
-
-                padding:
-                    EdgeInsets.all(
-                  isMobile
-                      ? 24
-                      : 38,
+    return Center(
+      child: Text(
+        'Clinical Prescription System',
+        style: TextStyle(
+          fontSize: 32,
+          fontWeight:
+              FontWeight.bold,
+          color: dark
+              ? Colors.white
+              : const Color(
+                  0xff0f172a,
                 ),
-
-                decoration:
-                    BoxDecoration(
-                  borderRadius:
-                      BorderRadius.circular(
-                    36,
-                  ),
-
-                  color:
-                      Colors.white
-                          .withOpacity(
-                    0.05,
-                  ),
-
-                  border: Border.all(
-                    color:
-                        Colors.cyanAccent
-                            .withOpacity(
-                      0.15,
-                    ),
-                  ),
-                ),
-
-                child:
-                    isMobile
-                        ? buildMobileHero()
-                        : buildDesktopHero(),
-              ),
-            ),
-          ),
-
-          const SizedBox(
-            height: 35,
-          ),
-
-          const Text(
-            'Cyber Analytics',
-
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 32,
-              fontWeight:
-                  FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(
-            height: 10,
-          ),
-
-          Text(
-            'Realtime futuristic medical analytics',
-
-            style: TextStyle(
-              color:
-                  Colors.white
-                      .withOpacity(
-                0.60,
-              ),
-            ),
-          ),
-
-          const SizedBox(
-            height: 24,
-          ),
-
-          GridView.count(
-            crossAxisCount:
-                crossAxisCount,
-
-            shrinkWrap: true,
-
-            physics:
-                const NeverScrollableScrollPhysics(),
-
-            crossAxisSpacing: 18,
-            mainAxisSpacing: 18,
-
-            childAspectRatio:
-                isMobile
-                    ? 1.05
-                    : 1.18,
-
-            children: const [
-              DashboardCard(
-                title: 'Total Drugs',
-                value: '128',
-                icon:
-                    Icons.medication_rounded,
-                color: Colors.cyan,
-              ),
-
-              DashboardCard(
-                title: 'Patients',
-                value: '542',
-                icon:
-                    Icons.people_alt_rounded,
-                color: Colors.orange,
-              ),
-
-              DashboardCard(
-                title:
-                    'Prescriptions',
-                value: '1,240',
-                icon:
-                    Icons
-                        .receipt_long_rounded,
-                color: Colors.green,
-              ),
-
-              DashboardCard(
-                title:
-                    'Clinical Notes',
-                value: '84',
-                icon:
-                    Icons.note_alt_rounded,
-                color: Colors.purple,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildDesktopHero() {
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment
-                    .start,
-
-            children: [
-              const Text(
-                'Clinical Cyber Dashboard',
-
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 42,
-                  fontWeight:
-                      FontWeight.bold,
-                ),
-              ),
-
-              const SizedBox(
-                height: 16,
-              ),
-
-              Text(
-                'Futuristic AI-powered healthcare management system.',
-
-                style: TextStyle(
-                  color:
-                      Colors.white
-                          .withOpacity(
-                    0.75,
-                  ),
-
-                  fontSize: 16,
-                ),
-              ),
-
-              const SizedBox(
-                height: 30,
-              ),
-
-              Wrap(
-                spacing: 14,
-                runSpacing: 14,
-
-                children: [
-                  quickButton(
-                    icon:
-                        Icons.add_rounded,
-                    title:
-                        'Prescription',
-                  ),
-
-                  quickButton(
-                    icon:
-                        Icons.search_rounded,
-                    title:
-                        'Find Drug',
-                  ),
-
-                  quickButton(
-                    icon:
-                        Icons.people_alt_rounded,
-                    title:
-                        'Patients',
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(
-          width: 20,
-        ),
-
-        Container(
-          width: 180,
-          height: 180,
-
-          decoration:
-              BoxDecoration(
-            shape:
-                BoxShape.circle,
-
-            gradient:
-                LinearGradient(
-              colors: [
-                Colors.cyanAccent
-                    .withOpacity(
-                  0.18,
-                ),
-                Colors.blueAccent
-                    .withOpacity(
-                  0.08,
-                ),
-              ],
-            ),
-          ),
-
-          child: const Icon(
-            Icons.local_hospital,
-            size: 120,
-            color: Colors.white24,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget buildMobileHero() {
-    return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
-
-      children: [
-        const Text(
-          'Clinical Cyber Dashboard',
-
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 30,
-            fontWeight:
-                FontWeight.bold,
-          ),
-        ),
-
-        const SizedBox(
-          height: 14,
-        ),
-
-        Text(
-          'Futuristic AI-powered healthcare management system.',
-
-          style: TextStyle(
-            color:
-                Colors.white
-                    .withOpacity(
-              0.75,
-            ),
-          ),
-        ),
-
-        const SizedBox(
-          height: 24,
-        ),
-
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-
-          children: [
-            quickButton(
-              icon:
-                  Icons.add_rounded,
-              title:
-                  'Prescription',
-            ),
-
-            quickButton(
-              icon:
-                  Icons.search_rounded,
-              title:
-                  'Find Drug',
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-// =====================================================
-// QUICK BUTTON
-// =====================================================
-
-Widget quickButton({
-  required IconData icon,
-  required String title,
-}) {
-  return Container(
-    padding:
-        const EdgeInsets.symmetric(
-      horizontal: 18,
-      vertical: 14,
-    ),
-
-    decoration: BoxDecoration(
-      borderRadius:
-          BorderRadius.circular(
-        18,
-      ),
-
-      border: Border.all(
-        color:
-            Colors.cyanAccent
-                .withOpacity(0.25),
-      ),
-
-      color:
-          Colors.white.withOpacity(
-        0.04,
-      ),
-    ),
-
-    child: Row(
-      mainAxisSize:
-          MainAxisSize.min,
-
-      children: [
-        Icon(
-          icon,
-          color: Colors.white,
-          size: 20,
-        ),
-
-        const SizedBox(
-          width: 10,
-        ),
-
-        Text(
-          title,
-
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight:
-                FontWeight.w600,
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-// =====================================================
-// DASHBOARD CARD
-// =====================================================
-
-class DashboardCard
-    extends StatefulWidget {
-  final String title;
-  final String value;
-  final IconData icon;
-  final Color color;
-
-  const DashboardCard({
-    super.key,
-    required this.title,
-    required this.value,
-    required this.icon,
-    required this.color,
-  });
-
-  @override
-  State<DashboardCard>
-      createState() =>
-          _DashboardCardState();
-}
-
-class _DashboardCardState
-    extends State<DashboardCard> {
-  bool hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final bool isMobile =
-        MediaQuery.of(context)
-            .size
-            .width <
-        700;
-
-    return MouseRegion(
-      onEnter: (_) {
-        if (!isMobile) {
-          setState(() {
-            hover = true;
-          });
-        }
-      },
-
-      onExit: (_) {
-        if (!isMobile) {
-          setState(() {
-            hover = false;
-          });
-        }
-      },
-
-      child:
-          AnimatedContainer(
-        duration:
-            const Duration(
-          milliseconds: 220,
-        ),
-
-        transform:
-            Matrix4.identity()
-              ..scale(
-                hover ? 1.02 : 1,
-              ),
-
-        decoration:
-            BoxDecoration(
-          borderRadius:
-              BorderRadius.circular(
-            30,
-          ),
-
-          gradient:
-              LinearGradient(
-            begin:
-                Alignment.topLeft,
-            end:
-                Alignment.bottomRight,
-
-            colors: [
-              widget.color
-                  .withOpacity(
-                0.85,
-              ),
-              widget.color
-                  .withOpacity(
-                0.45,
-              ),
-            ],
-          ),
-
-          boxShadow: [
-            BoxShadow(
-              color:
-                  widget.color
-                      .withOpacity(
-                0.20,
-              ),
-              blurRadius: 24,
-              offset:
-                  const Offset(
-                0,
-                10,
-              ),
-            ),
-          ],
-        ),
-
-        child: Padding(
-          padding:
-              const EdgeInsets.all(
-            24,
-          ),
-
-          child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment
-                    .start,
-
-            children: [
-              Row(
-                crossAxisAlignment:
-                    CrossAxisAlignment
-                        .start,
-
-                children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.all(
-                      14,
-                    ),
-
-                    decoration:
-                        BoxDecoration(
-                      color:
-                          Colors
-                              .white
-                              .withOpacity(
-                        0.12,
-                      ),
-
-                      borderRadius:
-                          BorderRadius.circular(
-                        18,
-                      ),
-                    ),
-
-                    child: Icon(
-                      widget.icon,
-                      color:
-                          Colors.white,
-                      size: 30,
-                    ),
-                  ),
-
-                  const Spacer(),
-
-                  Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment
-                            .end,
-
-                    children: [
-                      Text(
-                        '+12.5%',
-
-                        style: TextStyle(
-                          color:
-                              Colors
-                                  .greenAccent
-                                  .shade100,
-
-                          fontWeight:
-                              FontWeight
-                                  .bold,
-
-                          fontSize:
-                              isMobile
-                                  ? 14
-                                  : 18,
-                        ),
-                      ),
-
-                      const SizedBox(
-                        height: 2,
-                      ),
-
-                      Text(
-                        'vs last month',
-
-                        style: TextStyle(
-                          color:
-                              Colors
-                                  .white
-                                  .withOpacity(
-                            0.6,
-                          ),
-
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-
-              const Spacer(),
-
-              Text(
-                widget.value,
-
-                maxLines: 1,
-                overflow:
-                    TextOverflow
-                        .ellipsis,
-
-                style: TextStyle(
-                  color: Colors.white,
-
-                  fontWeight:
-                      FontWeight.bold,
-
-                  fontSize:
-                      isMobile
-                          ? 34
-                          : 48,
-
-                  height: 1,
-                ),
-              ),
-
-              const SizedBox(
-                height: 10,
-              ),
-
-              Text(
-                widget.title,
-
-                maxLines: 1,
-                overflow:
-                    TextOverflow
-                        .ellipsis,
-
-                style: TextStyle(
-                  color:
-                      Colors.white
-                          .withOpacity(
-                    0.85,
-                  ),
-
-                  fontSize:
-                      isMobile
-                          ? 15
-                          : 18,
-
-                  fontWeight:
-                      FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

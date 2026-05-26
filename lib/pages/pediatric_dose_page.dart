@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../services/supabase_service.dart';
+import '../theme/app_colors.dart';
 
 class PediatricDosePage extends StatefulWidget {
   const PediatricDosePage({super.key});
@@ -432,11 +433,19 @@ class _PediatricDosePageState
     // CALCULATE MG
     // =====================================================
 
-    final doseMgMin =
-        weight * mgPerKgMin;
+    // TOTAL DAILY DOSE
+final dailyDoseMin =
+    weight * mgPerKgMin;
 
-    final doseMgMax =
-        weight * mgPerKgMax;
+final dailyDoseMax =
+    weight * mgPerKgMax;
+
+// DIVIDED INTO 3 DOSES
+final doseMgMin =
+    dailyDoseMin ;
+
+final doseMgMax =
+    dailyDoseMax ;
 
     String calculatedDose = '';
     String smartSigna = '';
@@ -533,20 +542,29 @@ class _PediatricDosePageState
               500;
 
       double tabDoseMin =
-          doseMgMin / strength;
+    doseMgMin / strength;
 
-      double tabDoseMax =
-          doseMgMax / strength;
+double tabDoseMax =
+    doseMgMax / strength;
 
-      tabDoseMin =
-          double.parse(
-        tabDoseMin.toStringAsFixed(2),
-      );
+// =====================================================
+// ROUND TO CLINICAL FRACTION
+// =====================================================
 
-      tabDoseMax =
-          double.parse(
-        tabDoseMax.toStringAsFixed(2),
-      );
+double roundTabletDose(double value) {
+
+  if (value <= 0.25) return 0.25;
+  if (value <= 0.5) return 0.5;
+  if (value <= 0.75) return 0.75;
+
+  return value.roundToDouble();
+}
+
+tabDoseMin =
+    roundTabletDose(tabDoseMin);
+
+tabDoseMax =
+    roundTabletDose(tabDoseMax);
 
       final totalTab =
           (tabDoseMax * 3 * duration)
@@ -558,17 +576,15 @@ class _PediatricDosePageState
 
           '${doseMgMax.toStringAsFixed(0)} mg/dose\n\n'
 
-          '${tabDoseMin.toStringAsFixed(2)} - '
+          '${tabletFraction(tabDoseMin)} - '
 
-          '${tabDoseMax.toStringAsFixed(2)} tablet';
+          '${tabletFraction(tabDoseMax)} tablet';
 
       smartSigna =
 
           'S 3 dd '
-
-          '${tabDoseMin.toStringAsFixed(2)} - '
-
-          '${tabDoseMax.toStringAsFixed(2)} tab p.c';
+          '${tabletFraction(tabDoseMin)} - '
+          '${tabletFraction(tabDoseMax)} tab p.c';
 
       qtyText =
           'No. ${toRoman(totalTab)}';
@@ -591,6 +607,27 @@ $smartSigna
 ''';
     });
   }
+
+// =====================================================
+// TABLET FRACTION TEXT
+// =====================================================
+
+String tabletFraction(double value) {
+
+  if (value == 0.25) {
+    return '¼';
+  }
+
+  if (value == 0.5) {
+    return '½';
+  }
+
+  if (value == 0.75) {
+    return '¾';
+  }
+
+  return value.toInt().toString();
+}
 
   // =====================================================
   // INPUT STYLE

@@ -1,177 +1,137 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
+  // ================= LIGHT =================
 
-  // =========================
-  // DARK THEME
-  // =========================
+  static ThemeData lightTheme = ThemeData(
+    brightness: Brightness.light,
 
-  static ThemeData darkTheme =
-      ThemeData(
+    scaffoldBackgroundColor: const Color(0xffedf4ff),
 
-    brightness: Brightness.dark,
+    primaryColor: const Color(0xff2563eb),
 
-    scaffoldBackgroundColor:
-        const Color(0xFF0F172A),
+    fontFamily: 'Roboto',
 
-    primaryColor:
-        Colors.cyan,
-
-    appBarTheme:
-        const AppBarTheme(
-
-      backgroundColor:
-          Color(0xFF0F172A),
-
-      elevation: 0,
-
-      centerTitle: false,
+    colorScheme: const ColorScheme.light(
+      primary: Color(0xff2563eb),
+      secondary: Color(0xff06b6d4),
     ),
 
-    cardColor:
-        const Color(0xFF1E293B),
+    cardColor: Colors.white,
 
-    colorScheme:
-        const ColorScheme.dark(
+    dividerColor: Colors.black12,
 
-      primary:
-          Colors.cyan,
-    ),
-
-    inputDecorationTheme:
-        InputDecorationTheme(
-
-      filled: true,
-
-      fillColor:
-          const Color(0xFF334155),
-
-      border:
-          OutlineInputBorder(
-
-        borderRadius:
-            BorderRadius.circular(
-          18,
-        ),
-
-        borderSide:
-            BorderSide.none,
+    textTheme: const TextTheme(
+      bodyLarge: TextStyle(
+        color: Color(0xff111827),
+      ),
+      bodyMedium: TextStyle(
+        color: Color(0xff374151),
+      ),
+      titleLarge: TextStyle(
+        color: Color(0xff111827),
+        fontWeight: FontWeight.bold,
       ),
     ),
 
-    elevatedButtonTheme:
-        ElevatedButtonThemeData(
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: Colors.white,
 
-      style:
-          ElevatedButton.styleFrom(
+      hintStyle: TextStyle(
+        color: Colors.black.withOpacity(0.45),
+      ),
 
-        backgroundColor:
-            Colors.cyan,
+      labelStyle: const TextStyle(
+        color: Color(0xff374151),
+      ),
 
-        foregroundColor:
-            Colors.white,
-
-        shape:
-            RoundedRectangleBorder(
-
-          borderRadius:
-              BorderRadius.circular(
-            18,
-          ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: BorderSide(
+          color: Colors.black.withOpacity(0.08),
         ),
+      ),
 
-        minimumSize:
-            const Size(
-          double.infinity,
-          55,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: BorderSide(
+          color: Colors.black.withOpacity(0.08),
+        ),
+      ),
+
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: const BorderSide(
+          color: Color(0xff06b6d4),
         ),
       ),
     ),
   );
 
-  // =========================
-  // LIGHT THEME
-  // =========================
+  // ================= DARK =================
 
-  static ThemeData lightTheme =
-      ThemeData(
+  static ThemeData darkTheme = ThemeData(
+    brightness: Brightness.dark,
 
-    brightness: Brightness.light,
+    scaffoldBackgroundColor: const Color(0xff030712),
 
-    scaffoldBackgroundColor:
-        Colors.grey.shade100,
+    primaryColor: Colors.cyanAccent,
 
-    primaryColor:
-        Colors.blue,
+    fontFamily: 'Roboto',
 
-    appBarTheme:
-        AppBarTheme(
-
-      backgroundColor:
-          Colors.white,
-
-      foregroundColor:
-          Colors.black,
-
-      elevation: 0,
+    colorScheme: const ColorScheme.dark(
+      primary: Colors.cyanAccent,
+      secondary: Colors.blueAccent,
     ),
 
-    cardColor:
-        Colors.white,
+    cardColor: const Color(0xff071120),
 
-    colorScheme:
-        const ColorScheme.light(
+    dividerColor: Colors.white12,
 
-      primary:
-          Colors.blue,
-    ),
-
-    inputDecorationTheme:
-        InputDecorationTheme(
-
-      filled: true,
-
-      fillColor:
-          Colors.white,
-
-      border:
-          OutlineInputBorder(
-
-        borderRadius:
-            BorderRadius.circular(
-          18,
-        ),
-
-        borderSide:
-            BorderSide.none,
+    textTheme: const TextTheme(
+      bodyLarge: TextStyle(
+        color: Colors.white,
+      ),
+      bodyMedium: TextStyle(
+        color: Colors.white70,
+      ),
+      titleLarge: TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
       ),
     ),
 
-    elevatedButtonTheme:
-        ElevatedButtonThemeData(
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: Colors.white.withOpacity(0.05),
 
-      style:
-          ElevatedButton.styleFrom(
+      hintStyle: TextStyle(
+        color: Colors.white.withOpacity(0.45),
+      ),
 
-        backgroundColor:
-            Colors.blue,
+      labelStyle: TextStyle(
+        color: Colors.white.withOpacity(0.7),
+      ),
 
-        foregroundColor:
-            Colors.white,
-
-        shape:
-            RoundedRectangleBorder(
-
-          borderRadius:
-              BorderRadius.circular(
-            18,
-          ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: BorderSide(
+          color: Colors.white.withOpacity(0.08),
         ),
+      ),
 
-        minimumSize:
-            const Size(
-          double.infinity,
-          55,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: BorderSide(
+          color: Colors.white.withOpacity(0.08),
+        ),
+      ),
+
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: const BorderSide(
+          color: Colors.cyanAccent,
         ),
       ),
     ),

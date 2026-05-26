@@ -11,14 +11,21 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(
-    url: 'https://ktinojqknhqcrullkoqq.supabase.co',
+    url:
+        'https://ktinojqknhqcrullkoqq.supabase.co',
+
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0aW5vanFrbmhxY3J1bGxrb3FxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNzg5OTUsImV4cCI6MjA5NDg1NDk5NX0.iZ_ja6wjymF1cFbk--hqZaxkq0zFzcZOjW1g1wftdOE',
   );
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => ThemeProvider(),
+        ),
+      ],
+
       child: const MyApp(),
     ),
   );
@@ -32,33 +39,62 @@ class MyApp extends StatelessWidget {
     final themeProvider =
         Provider.of<ThemeProvider>(context);
 
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
+    return AnimatedTheme(
+      duration: const Duration(
+        milliseconds: 350,
+      ),
 
-      title: 'Clinical Prescription',
+      data:
+          themeProvider.isDark
+              ? AppTheme.darkTheme
+              : AppTheme.lightTheme,
 
-      theme: AppTheme.lightTheme,
+      child: MaterialApp(
+        debugShowCheckedModeBanner:
+            false,
 
-      darkTheme: AppTheme.darkTheme,
+        title:
+            'Clinical Prescription System',
 
-      themeMode: themeProvider.themeMode,
+        theme: AppTheme.lightTheme,
 
-      builder: (context, child) {
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            return MediaQuery(
-              data: MediaQuery.of(context).copyWith(
-                textScaler: const TextScaler.linear(
-                  1.0,
-                ),
+        darkTheme: AppTheme.darkTheme,
+
+        themeMode:
+            themeProvider.themeMode,
+
+        // =====================================================
+        // GLOBAL RESPONSIVE
+        // =====================================================
+
+        builder: (context, child) {
+          return MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(
+              textScaler:
+                  const TextScaler.linear(
+                1.0,
               ),
-              child: child!,
-            );
-          },
-        );
-      },
+            ),
 
-      home: const LoginPage(),
+            child: AnimatedSwitcher(
+              duration:
+                  const Duration(
+                milliseconds: 300,
+              ),
+
+              child: child!,
+            ),
+          );
+        },
+
+        // =====================================================
+        // START PAGE
+        // =====================================================
+
+        home: const LoginPage(),
+      ),
     );
   }
 }
