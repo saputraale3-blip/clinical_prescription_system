@@ -243,10 +243,17 @@ class SupabaseService {
     try {
 
       final response =
-          await supabase
-              .from('profiles')
-              .select('*')
-              .order('username');
+    await supabase
+        .from('profiles')
+        .select('''
+          *,
+          role,
+          approved,
+          trial_start,
+          trial_end,
+          is_admin
+        ''')
+        .order('username');
 
       final data =
           List<Map<String, dynamic>>.from(
@@ -274,69 +281,194 @@ class SupabaseService {
   // =====================================================
 
   static Future<void>
-      updateUserRole({
+    updateUserRole({
 
-    required String userId,
+  required String userId,
 
-    required bool isAdmin,
+  required String role,
 
-  }) async {
+}) async {
 
-    try {
+  try {
 
-      await supabase
-          .from('profiles')
-          .update({
+    await supabase
+        .from('profiles')
+        .update({
 
-        'is_admin': isAdmin,
+      'role': role,
 
-        'role':
-            isAdmin
-                ? 'admin'
-                : 'user',
+      'is_admin':
+          role == 'admin',
 
-      }).eq('id', userId);
+    }).eq('id', userId);
 
-    } catch (e) {
+  } catch (e) {
 
-      debugPrint(
-        'UPDATE USER ROLE ERROR: $e',
-      );
-    }
+    debugPrint(
+      'UPDATE USER ROLE ERROR: $e',
+    );
   }
+}
 
   // =====================================================
   // APPROVE USER
   // =====================================================
 
-  static Future<void>
-      approveUser({
+ static Future<void>
+    approveUser({
 
-    required String userId,
+  required String userId,
 
-    required bool approved,
+  required bool approved,
 
-  }) async {
+}) async {
 
-    try {
+  try {
 
-      await supabase
-          .from('profiles')
-          .update({
+    final now = DateTime.now();
 
-        'approved': approved,
+    final end =
+        now.add(
+      const Duration(days: 3),
+    );
 
-      }).eq('id', userId);
+    await supabase
+        .from('profiles')
+        .update({
 
-    } catch (e) {
+      'approved': approved,
 
-      debugPrint(
-        'APPROVE USER ERROR: $e',
-      );
-    }
+      'role': 'user',
+
+      'trial_start':
+          now.toIso8601String(),
+
+      'trial_end':
+          end.toIso8601String(),
+
+    }).eq('id', userId);
+
+  } catch (e) {
+
+    debugPrint(
+      'APPROVE USER ERROR: $e',
+    );
   }
+}
 
   // =====================================================
+// UPDATE TRIAL
+// =====================================================
+
+static Future<void>
+    updateTrial({
+
+  required String userId,
+
+  required DateTime startDate,
+
+  required DateTime endDate,
+
+}) async {
+
+  try {
+
+    await supabase
+        .from('profiles')
+        .update({
+
+      'trial_start':
+          startDate.toIso8601String(),
+
+      'trial_end':
+          endDate.toIso8601String(),
+
+    }).eq('id', userId);
+
+  } catch (e) {
+
+    debugPrint(
+      'UPDATE TRIAL ERROR: $e',
+    );
+  }
+}
+
+// =====================================================
+// UPDATE USER ROLE ADVANCED
+// =====================================================
+
+static Future<void>
+    updateUserRoleAdvanced({
+
+  required String userId,
+
+  required String role,
+
+}) async {
+
+  try {
+
+    await supabase
+        .from('profiles')
+        .update({
+
+      'role': role,
+
+      'is_admin': role == 'admin',
+
+    }).eq('id', userId);
+
+  } catch (e) {
+
+    debugPrint(
+      'UPDATE ROLE ERROR: $e',
+    );
+  }
+}
+
+// =====================================================
+// GIVE 30 DAYS TRIAL
+// =====================================================
+
+static Future<void>
+    giveTrial30Days({
+
+  required String userId,
+
+}) async {
+
+  try {
+
+    final now = DateTime.now();
+
+    final end =
+        now.add(
+      const Duration(days: 30),
+    );
+
+    await supabase
+        .from('profiles')
+        .update({
+
+      'trial_start':
+          now.toIso8601String(),
+
+      'trial_end':
+          end.toIso8601String(),
+
+      'role': 'pro',
+
+    }).eq('id', userId);
+
+  } catch (e) {
+
+    debugPrint(
+      'TRIAL ERROR: $e',
+    );
+  }
+}
+
+    // =====================================================
   // DELETE USER
   // =====================================================
 
@@ -359,6 +491,39 @@ class SupabaseService {
       debugPrint(
         'DELETE USER ERROR: $e',
       );
+    }
+  }
+
+  // =====================================================
+  // GET CURRENT USER DATA
+  // =====================================================
+
+  static Future<Map<String, dynamic>?>
+      getCurrentUserData() async {
+
+    try {
+
+      final user =
+          supabase.auth.currentUser;
+
+      if (user == null) return null;
+
+      final response =
+          await supabase
+              .from('profiles')
+              .select()
+              .eq('id', user.id)
+              .single();
+
+      return response;
+
+    } catch (e) {
+
+      debugPrint(
+        'GET CURRENT USER ERROR: $e',
+      );
+
+      return null;
     }
   }
 }

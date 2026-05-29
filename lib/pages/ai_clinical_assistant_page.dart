@@ -30,6 +30,10 @@ class _AIClinicalAssistantPageState
 
   bool isLoading = true;
 
+  bool hasAccess = false;
+
+  String userRole = 'basic';
+
   List<Map<String, dynamic>>
       generatedPrescription = [];
 
@@ -48,37 +52,58 @@ class _AIClinicalAssistantPageState
 
     super.initState();
 
-    loadDatabase();
+    initializePage();
   }
 
   // =====================================================
-  // LOAD DATABASE
+  // INITIALIZE
   // =====================================================
 
-  Future<void> loadDatabase() async {
+  Future<void> initializePage() async {
 
     try {
 
-      final drugs =
+      final currentUser =
           await SupabaseService
-              .getDrugs();
+              .getCurrentUserData();
 
-      final pediatric =
-          await SupabaseService
-              .getPediatricDrugs();
+      userRole =
+          (currentUser?['role'] ?? 'user')
+              .toString()
+              .toLowerCase();
 
-      setState(() {
+      userRole =
+          (currentUser?['role'] ?? 'basic')
+              .toString()
+              .toLowerCase();
+
+      // HANYA PRO DAN ADMIN
+      hasAccess =
+          userRole == 'pro' ||
+          userRole == 'admin';
+
+      if (hasAccess) {
+
+        final drugs =
+            await SupabaseService
+                .getDrugs();
+
+        final pediatric =
+            await SupabaseService
+                .getPediatricDrugs();
 
         drugDatabase = drugs;
 
         pediatricDatabase =
             pediatric;
+      }
+
+      setState(() {
 
         isLoading = false;
       });
-    }
 
-    catch (e) {
+    } catch (e) {
 
       setState(() {
 
@@ -216,6 +241,187 @@ class _AIClinicalAssistantPageState
   @override
   Widget build(BuildContext context) {
 
+    if (isLoading) {
+
+      return const Scaffold(
+
+        backgroundColor:
+            Color(0xff020617),
+
+        body: Center(
+
+          child:
+              CircularProgressIndicator(
+            color:
+                Colors.cyanAccent,
+          ),
+        ),
+      );
+    }
+
+    // =====================================================
+    // BLOCK BASIC USER
+    // =====================================================
+
+    if (!hasAccess) {
+
+      return Scaffold(
+
+        backgroundColor:
+            const Color(0xff020617),
+
+        body: Center(
+
+          child: Container(
+
+            width: 500,
+
+            padding:
+                const EdgeInsets.all(
+              32,
+            ),
+
+            decoration:
+                BoxDecoration(
+
+              borderRadius:
+                  BorderRadius.circular(
+                28,
+              ),
+
+              color:
+                  Colors.white
+                      .withOpacity(
+                0.04,
+              ),
+
+              border:
+                  Border.all(
+
+                color:
+                    Colors.redAccent
+                        .withOpacity(
+                  0.3,
+                ),
+              ),
+            ),
+
+            child: Column(
+
+              mainAxisSize:
+                  MainAxisSize.min,
+
+              children: [
+
+                const Icon(
+
+                  Icons.lock_rounded,
+
+                  color:
+                      Colors.redAccent,
+
+                  size: 90,
+                ),
+
+                const SizedBox(
+                  height: 24,
+                ),
+
+                const Text(
+
+                  'PRO FEATURE',
+
+                  style: TextStyle(
+
+                    color:
+                        Colors.redAccent,
+
+                    fontSize: 28,
+
+                    fontWeight:
+                        FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(
+                  height: 18,
+                ),
+
+                Text(
+
+                  'AI Clinical Assistant hanya tersedia untuk akun PRO dan ADMIN.',
+
+                  textAlign:
+                      TextAlign.center,
+
+                  style: TextStyle(
+
+                    color: Colors.white
+                        .withOpacity(
+                      0.7,
+                    ),
+
+                    fontSize: 18,
+
+                    height: 1.6,
+                  ),
+                ),
+
+                const SizedBox(
+                  height: 26,
+                ),
+
+                Container(
+
+                  padding:
+                      const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 14,
+                  ),
+
+                  decoration:
+                      BoxDecoration(
+
+                    borderRadius:
+                        BorderRadius.circular(
+                      18,
+                    ),
+
+                    color:
+                        Colors.cyanAccent
+                            .withOpacity(
+                      0.1,
+                    ),
+                  ),
+
+                  child: const Text(
+
+                    'Upgrade to PRO to unlock AI Prescription Generator',
+
+                    textAlign:
+                        TextAlign.center,
+
+                    style: TextStyle(
+
+                      color:
+                          Colors.cyanAccent,
+
+                      fontWeight:
+                          FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // =====================================================
+    // NORMAL PAGE
+    // =====================================================
+
     return Scaffold(
 
       backgroundColor:
@@ -223,284 +429,271 @@ class _AIClinicalAssistantPageState
         0xff020617,
       ),
 
-      body:
+      body: SafeArea(
 
-          isLoading
+        child:
+            SingleChildScrollView(
 
-              ? const Center(
+          padding:
+              const EdgeInsets.all(
+            24,
+          ),
 
-                  child:
-                      CircularProgressIndicator(
-                    color:
-                        Colors.cyanAccent,
+          child: Column(
+
+            crossAxisAlignment:
+                CrossAxisAlignment
+                    .start,
+
+            children: [
+
+              const Text(
+
+                'AI Clinical Assistant',
+
+                style: TextStyle(
+
+                  color:
+                      Colors.white,
+
+                  fontSize: 36,
+
+                  fontWeight:
+                      FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(
+                height: 10,
+              ),
+
+              Text(
+
+                'Smart AI Prescription Generator',
+
+                style: TextStyle(
+
+                  color: Colors.white
+                      .withOpacity(
+                    0.5,
                   ),
-                )
 
-              : SafeArea(
+                  fontSize: 16,
+                ),
+              ),
 
-                  child:
-                      SingleChildScrollView(
+              const SizedBox(
+                height: 30,
+              ),
 
-                    padding:
-                        const EdgeInsets.all(
-                      24,
+              // =====================================================
+              // AI CARD
+              // =====================================================
+
+              Container(
+
+                padding:
+                    const EdgeInsets.all(
+                  24,
+                ),
+
+                decoration:
+                    BoxDecoration(
+
+                  borderRadius:
+                      BorderRadius.circular(
+                    28,
+                  ),
+
+                  color:
+                      Colors.cyanAccent
+                          .withOpacity(
+                    0.05,
+                  ),
+
+                  border:
+                      Border.all(
+
+                    color:
+                        Colors.cyanAccent
+                            .withOpacity(
+                      0.2,
+                    ),
+                  ),
+                ),
+
+                child: Column(
+
+                  children: [
+
+                    TextField(
+
+                      controller:
+                          symptomController,
+
+                      style:
+                          const TextStyle(
+                        color:
+                            Colors.white,
+                      ),
+
+                      decoration:
+                          cyberInput(
+                        'Example: Demam anak 12kg',
+                      ),
                     ),
 
-                    child: Column(
+                    const SizedBox(
+                      height: 20,
+                    ),
 
-                      crossAxisAlignment:
-                          CrossAxisAlignment
-                              .start,
+                    TextField(
 
-                      children: [
+                      controller:
+                          weightController,
 
-                        const Text(
+                      keyboardType:
+                          TextInputType.number,
 
-                          'AI Clinical Assistant',
+                      style:
+                          const TextStyle(
+                        color:
+                            Colors.white,
+                      ),
+
+                      decoration:
+                          cyberInput(
+                        'Weight (kg)',
+                      ),
+                    ),
+
+                    const SizedBox(
+                      height: 24,
+                    ),
+
+                    SizedBox(
+
+                      width:
+                          double.infinity,
+
+                      height: 58,
+
+                      child:
+                          ElevatedButton.icon(
+
+                        onPressed:
+                            generateAI,
+
+                        style:
+                            ElevatedButton.styleFrom(
+
+                          backgroundColor:
+                              Colors.cyanAccent,
+
+                          foregroundColor:
+                              Colors.black,
+
+                          shape:
+                              RoundedRectangleBorder(
+
+                            borderRadius:
+                                BorderRadius.circular(
+                              20,
+                            ),
+                          ),
+                        ),
+
+                        icon:
+                            const Icon(
+                          Icons.auto_awesome,
+                        ),
+
+                        label:
+                            const Text(
+
+                          'Generate AI Prescription',
 
                           style: TextStyle(
 
-                            color:
-                                Colors.white,
-
-                            fontSize: 36,
+                            fontSize: 18,
 
                             fontWeight:
                                 FontWeight.bold,
                           ),
                         ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
-                        const SizedBox(
-                          height: 10,
-                        ),
+              const SizedBox(
+                height: 30,
+              ),
 
-                        Text(
+              // =====================================================
+              // RESULT
+              // =====================================================
 
-                          'Smart AI Prescription Generator',
+              if (generatedPrescription
+                  .isNotEmpty)
 
-                          style: TextStyle(
+                Container(
 
-                            color: Colors.white
-                                .withOpacity(
-                              0.5,
-                            ),
+                  width:
+                      double.infinity,
 
-                            fontSize: 16,
-                          ),
-                        ),
+                  padding:
+                      const EdgeInsets.all(
+                    28,
+                  ),
 
-                        const SizedBox(
-                          height: 30,
-                        ),
+                  decoration:
+                      BoxDecoration(
 
-                        // =====================================================
-                        // AI CARD
-                        // =====================================================
+                    borderRadius:
+                        BorderRadius.circular(
+                      28,
+                    ),
 
-                        Container(
+                    color:
+                        Colors.white
+                            .withOpacity(
+                      0.03,
+                    ),
 
-                          padding:
-                              const EdgeInsets.all(
-                            24,
-                          ),
+                    border:
+                        Border.all(
 
-                          decoration:
-                              BoxDecoration(
+                      color: Colors
+                          .white
+                          .withOpacity(
+                        0.08,
+                      ),
+                    ),
+                  ),
 
-                            borderRadius:
-                                BorderRadius.circular(
-                              28,
-                            ),
+                  child:
+                      SelectableText(
 
-                            color:
-                                Colors.cyanAccent
-                                    .withOpacity(
-                              0.05,
-                            ),
+                    buildPrescription(),
 
-                            border:
-                                Border.all(
+                    style:
+                        const TextStyle(
 
-                              color:
-                                  Colors.cyanAccent
-                                      .withOpacity(
-                                0.2,
-                              ),
-                            ),
-                          ),
+                      color:
+                          Colors.white,
 
-                          child: Column(
+                      fontSize: 20,
 
-                            children: [
-
-                              TextField(
-
-                                controller:
-                                    symptomController,
-
-                                style:
-                                    const TextStyle(
-                                  color:
-                                      Colors.white,
-                                ),
-
-                                decoration:
-                                    cyberInput(
-                                  'Example: Demam anak 12kg',
-                                ),
-                              ),
-
-                              const SizedBox(
-                                height: 20,
-                              ),
-
-                              TextField(
-
-                                controller:
-                                    weightController,
-
-                                keyboardType:
-                                    TextInputType.number,
-
-                                style:
-                                    const TextStyle(
-                                  color:
-                                      Colors.white,
-                                ),
-
-                                decoration:
-                                    cyberInput(
-                                  'Weight (kg)',
-                                ),
-                              ),
-
-                              const SizedBox(
-                                height: 24,
-                              ),
-
-                              SizedBox(
-
-                                width:
-                                    double.infinity,
-
-                                height: 58,
-
-                                child:
-                                    ElevatedButton.icon(
-
-                                  onPressed:
-                                      generateAI,
-
-                                  style:
-                                      ElevatedButton.styleFrom(
-
-                                    backgroundColor:
-                                        Colors.cyanAccent,
-
-                                    foregroundColor:
-                                        Colors.black,
-
-                                    shape:
-                                        RoundedRectangleBorder(
-
-                                      borderRadius:
-                                          BorderRadius.circular(
-                                        20,
-                                      ),
-                                    ),
-                                  ),
-
-                                  icon:
-                                      const Icon(
-                                    Icons.auto_awesome,
-                                  ),
-
-                                  label:
-                                      const Text(
-
-                                    'Generate AI Prescription',
-
-                                    style: TextStyle(
-
-                                      fontSize: 18,
-
-                                      fontWeight:
-                                          FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(
-                          height: 30,
-                        ),
-
-                        // =====================================================
-                        // RESULT
-                        // =====================================================
-
-                        if (generatedPrescription
-                            .isNotEmpty)
-
-                          Container(
-
-                            width:
-                                double.infinity,
-
-                            padding:
-                                const EdgeInsets.all(
-                              28,
-                            ),
-
-                            decoration:
-                                BoxDecoration(
-
-                              borderRadius:
-                                  BorderRadius.circular(
-                                28,
-                              ),
-
-                              color:
-                                  Colors.white
-                                      .withOpacity(
-                                0.03,
-                              ),
-
-                              border:
-                                  Border.all(
-
-                                color: Colors
-                                    .white
-                                    .withOpacity(
-                                  0.08,
-                                ),
-                              ),
-                            ),
-
-                            child:
-                                SelectableText(
-
-                              buildPrescription(),
-
-                              style:
-                                  const TextStyle(
-
-                                color:
-                                    Colors.white,
-
-                                fontSize: 20,
-
-                                height: 1.8,
-                              ),
-                            ),
-                          ),
-                      ],
+                      height: 1.8,
                     ),
                   ),
                 ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

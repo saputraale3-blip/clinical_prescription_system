@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/chat_message.dart';
+import '../services/auth_service.dart';
 import '../services/local_ai_chat_service.dart';
+import '../services/supabase_service.dart';
 
 class AIChatPage
     extends StatefulWidget {
@@ -29,61 +32,188 @@ class _AIChatPageState
   final List<ChatMessage>
       messages = [];
 
+      final ScrollController
+    scrollController =
+    ScrollController();
+
+      bool isLoading = true;
+
+bool hasAccess = false;
+
+String userRole = '';
+
+@override
+void initState() {
+
+  super.initState();
+
+  checkAccess();
+}
+
+Future<void> checkAccess() async {
+
+  final userData =
+      await SupabaseService
+          .getCurrentUserData();
+
+  final role =
+      (userData?['role'] ?? '')
+          .toString()
+          .toLowerCase();
+
+  userRole = role;
+
+  hasAccess =
+      role == 'pro' ||
+      role == 'admin';
+
+  setState(() {
+
+    isLoading = false;
+  });
+}
+
   // =====================================================
   // SEND MESSAGE
   // =====================================================
 
-  void sendMessage() {
+void sendMessage() async {
 
-    if (messageController.text
-        .trim()
-        .isEmpty) {
+  // =====================================================
+  // EMPTY CHECK
+  // =====================================================
 
-      return;
-    }
+  if (messageController.text
+      .trim()
+      .isEmpty) {
 
-    final userMessage =
-        messageController.text;
-
-    messages.add(
-
-      ChatMessage(
-
-        text: userMessage,
-
-        isUser: true,
-      ),
-    );
-
-    final weight =
-        double.tryParse(
-              weightController.text,
-            ) ??
-            0;
-
-    final aiReply =
-        LocalAIChatService
-            .generateReply(
-
-      message: userMessage,
-
-      weightKg: weight,
-    );
-
-    messages.add(
-
-      ChatMessage(
-
-        text: aiReply,
-
-        isUser: false,
-      ),
-    );
-
-    messageController.clear();
-
-    setState(() {});
+    return;
   }
+
+  // =====================================================
+  // AI LIMIT CHECK
+  // =====================================================
+
+  if (AuthService.isAiLimitReached()) {
+
+    ScaffoldMessenger.of(context)
+        .showSnackBar(
+
+      const SnackBar(
+
+        content: Text(
+          'Daily AI limit reached (30/day)',
+        ),
+      ),
+    );
+
+    return;
+  }
+
+  final userMessage =
+      messageController.text;
+
+  // =====================================================
+  // USER MESSAGE
+  // =====================================================
+
+  messages.add(
+
+    ChatMessage(
+
+      text: userMessage,
+
+      isUser: true,
+    ),
+  );
+
+  final weight =
+      double.tryParse(
+            weightController.text,
+          ) ??
+          0;
+
+  // =====================================================
+  // AI REPLY
+  // =====================================================
+
+  final aiReply =
+      LocalAIChatService
+          .generateReply(
+
+    message: userMessage,
+
+    weightKg: weight,
+  );
+
+  // =====================================================
+  // SAVE CHAT COUNT
+  // =====================================================
+
+  AuthService.currentAiChatCount++;
+
+  await Supabase.instance.client
+      .from('profiles')
+      .update({
+
+    'ai_chat_count':
+        AuthService.currentAiChatCount,
+
+  }).eq(
+
+    'id',
+
+    Supabase.instance.client
+        .auth.currentUser!.id,
+  );
+
+  // =====================================================
+  // AI MESSAGE
+  // =====================================================
+
+  messages.add(
+
+    ChatMessage(
+
+      text: aiReply,
+
+      isUser: false,
+    ),
+  );
+
+  scrollToBottom();
+
+  messageController.clear();
+
+  setState(() {});
+}
+
+void scrollToBottom() {
+
+  Future.delayed(
+    const Duration(milliseconds: 100),
+    () {
+
+      if (scrollController
+          .hasClients) {
+
+        scrollController.animateTo(
+
+          scrollController
+              .position
+              .maxScrollExtent,
+
+          duration:
+              const Duration(
+            milliseconds: 300,
+          ),
+
+          curve: Curves.easeOut,
+        );
+      }
+    },
+  );
+}
 
   // =====================================================
   // BUILD BUBBLE
@@ -169,6 +299,113 @@ class _AIChatPageState
   @override
   Widget build(BuildContext context) {
 
+    if (isLoading) {
+
+  return const Scaffold(
+
+    body: Center(
+
+      child:
+          CircularProgressIndicator(),
+    ),
+  );
+}
+
+if (!hasAccess) {
+
+  return Scaffold(
+
+    backgroundColor:
+        const Color(0xff020617),
+
+    body: Center(
+
+      child: Container(
+
+        margin:
+            const EdgeInsets.all(24),
+
+        padding:
+            const EdgeInsets.all(30),
+
+        decoration: BoxDecoration(
+
+          borderRadius:
+              BorderRadius.circular(28),
+
+          color:
+              Colors.white.withOpacity(0.05),
+
+          border: Border.all(
+            color: Colors.redAccent,
+          ),
+        ),
+
+        child: Column(
+
+          mainAxisSize:
+              MainAxisSize.min,
+
+          children: [
+
+            const Icon(
+
+              Icons.lock,
+
+              color:
+                  Colors.redAccent,
+
+              size: 70,
+            ),
+
+            const SizedBox(
+              height: 20,
+            ),
+
+            const Text(
+
+              'PRO FEATURE',
+
+              style: TextStyle(
+
+                color:
+                    Colors.redAccent,
+
+                fontSize: 28,
+
+                fontWeight:
+                    FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(
+              height: 14,
+            ),
+
+            Text(
+
+              'Your role: $userRole\n\nAI Chat only available for PRO and ADMIN users.',
+
+              textAlign:
+                  TextAlign.center,
+
+              style: TextStyle(
+
+                color: Colors.white
+                    .withOpacity(0.7),
+
+                fontSize: 17,
+
+                height: 1.7,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
     return Scaffold(
 
       backgroundColor:
@@ -182,108 +419,283 @@ class _AIChatPageState
 
           children: [
 
-            // =====================================================
-            // HEADER
-            // =====================================================
+// =====================================================
+// HEADER
+// =====================================================
 
-            Container(
+Container(
 
-              padding:
-                  const EdgeInsets.all(
-                24,
+  padding:
+      const EdgeInsets.symmetric(
+    horizontal: 20,
+    vertical: 18,
+  ),
+
+  child: Column(
+
+    crossAxisAlignment:
+        CrossAxisAlignment.start,
+
+    children: [
+
+      const Text(
+
+        'AI Clinical Chat',
+
+        style: TextStyle(
+
+          color: Colors.white,
+
+          fontSize: 32,
+
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+
+      const SizedBox(
+        height: 6,
+      ),
+
+      Text(
+
+        'Local AI Assistant',
+
+        style: TextStyle(
+
+          color:
+              Colors.white.withOpacity(
+            0.5,
+          ),
+
+          fontSize: 14,
+        ),
+      ),
+
+      const SizedBox(
+        height: 18,
+      ),
+
+      // =====================================================
+      // AI USAGE BAR
+      // =====================================================
+
+      if (hasAccess)
+
+        Container(
+
+          padding:
+              const EdgeInsets.symmetric(
+            horizontal: 18,
+            vertical: 16,
+          ),
+
+          decoration: BoxDecoration(
+
+            borderRadius:
+                BorderRadius.circular(22),
+
+            color:
+                Colors.white.withOpacity(0.04),
+
+            border: Border.all(
+
+              color:
+                  Colors.white.withOpacity(
+                0.06,
               ),
+            ),
+          ),
 
-              child: Column(
+          child: LayoutBuilder(
+
+            builder:
+                (context, constraints) {
+
+              final isMobile =
+                  constraints.maxWidth <
+                      600;
+
+              return Column(
 
                 crossAxisAlignment:
-                    CrossAxisAlignment
-                        .start,
+                    CrossAxisAlignment.start,
 
                 children: [
 
-                  const Text(
+                  if (isMobile)
 
-                    'AI Clinical Chat',
+                    Column(
 
-                    style: TextStyle(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start,
 
-                      color:
-                          Colors.white,
+                      children: [
 
-                      fontSize: 32,
+                        const Text(
 
-                      fontWeight:
-                          FontWeight.bold,
-                    ),
-                  ),
+                          'AI Usage Today',
 
-                  const SizedBox(
-                    height: 8,
-                  ),
+                          style: TextStyle(
 
-                  Text(
+                            color:
+                                Colors.white,
 
-                    'Local AI Assistant',
+                            fontSize: 15,
 
-                    style: TextStyle(
-
-                      color: Colors.white
-                          .withOpacity(
-                        0.5,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(
-                    height: 20,
-                  ),
-
-                  TextField(
-
-                    controller:
-                        weightController,
-
-                    keyboardType:
-                        TextInputType.number,
-
-                    style:
-                        const TextStyle(
-                      color:
-                          Colors.white,
-                    ),
-
-                    decoration:
-                        InputDecoration(
-
-                      hintText:
-                          'Patient Weight (kg)',
-
-                      hintStyle:
-                          const TextStyle(
-                        color:
-                            Colors.white54,
-                      ),
-
-                      filled: true,
-
-                      fillColor:
-                          const Color(
-                        0xff111827,
-                      ),
-
-                      border:
-                          OutlineInputBorder(
-
-                        borderRadius:
-                            BorderRadius.circular(
-                          20,
+                            fontWeight:
+                                FontWeight.bold,
+                          ),
                         ),
+
+                        const SizedBox(
+                          height: 10,
+                        ),
+
+                        Row(
+
+                          mainAxisAlignment:
+                              MainAxisAlignment
+                                  .spaceBetween,
+
+                          children: [
+
+                            Text(
+
+                              '${AuthService.currentAiChatCount} / 30',
+
+                              style:
+                                  const TextStyle(
+
+                                color:
+                                    Colors.cyanAccent,
+
+                                fontWeight:
+                                    FontWeight.bold,
+                              ),
+                            ),
+
+                            Text(
+
+                              '${30 - AuthService.currentAiChatCount} remaining',
+
+                              style: TextStyle(
+
+                                color: Colors
+                                    .white
+                                    .withOpacity(
+                                  0.6,
+                                ),
+
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    )
+
+                  else
+
+                    Row(
+
+                      children: [
+
+                        const Text(
+
+                          'AI Usage Today',
+
+                          style: TextStyle(
+
+                            color:
+                                Colors.white,
+
+                            fontSize: 15,
+
+                            fontWeight:
+                                FontWeight.bold,
+                          ),
+                        ),
+
+                        const Spacer(),
+
+                        Text(
+
+                          '${AuthService.currentAiChatCount} / 30',
+
+                          style:
+                              const TextStyle(
+
+                            color:
+                                Colors.cyanAccent,
+
+                            fontWeight:
+                                FontWeight.bold,
+                          ),
+                        ),
+
+                        const SizedBox(
+                          width: 24,
+                        ),
+
+                        Text(
+
+                          '${30 - AuthService.currentAiChatCount} chats remaining today',
+
+                          style: TextStyle(
+
+                            color:
+                                Colors.white
+                                    .withOpacity(
+                              0.6,
+                            ),
+
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                  const SizedBox(
+                    height: 14,
+                  ),
+
+                  ClipRRect(
+
+                    borderRadius:
+                        BorderRadius.circular(
+                      30,
+                    ),
+
+                    child:
+                        LinearProgressIndicator(
+
+                      value:
+                          AuthService.currentAiChatCount /
+                              30,
+
+                      minHeight: 10,
+
+                      backgroundColor:
+                          Colors.white
+                              .withOpacity(
+                        0.08,
+                      ),
+
+                      valueColor:
+                          const AlwaysStoppedAnimation(
+
+                        Colors.cyanAccent,
                       ),
                     ),
                   ),
                 ],
-              ),
-            ),
+              );
+            },
+          ),
+        ),
+    ],
+  ),
+),
 
             // =====================================================
             // CHAT
@@ -292,6 +704,9 @@ class _AIChatPageState
             Expanded(
 
               child: ListView.builder(
+
+controller:
+    scrollController,
 
                 padding:
                     const EdgeInsets.all(

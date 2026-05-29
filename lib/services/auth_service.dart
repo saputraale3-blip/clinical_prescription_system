@@ -5,6 +5,16 @@ class AuthService {
   static final supabase =
       Supabase.instance.client;
 
+  static String? currentUsername;
+
+  static String currentRole = 'user';
+
+  static DateTime? trialStart;
+
+  static bool currentAiAllowed = false;
+
+  static int currentAiChatCount = 0;
+
   // =========================
   // LOGIN
   // =========================
@@ -21,10 +31,6 @@ class AuthService {
 
       final email =
           '${username.trim()}@app.com';
-
-      // =========================
-      // LOGIN
-      // =========================
 
       final response =
           await supabase.auth
@@ -49,14 +55,78 @@ class AuthService {
 
       final profile =
           await supabase
-
               .from('profiles')
-
               .select()
-
               .eq('id', user.id)
-
               .single();
+
+      // =========================
+      // SAVE ROLE
+      // =========================
+
+      currentRole =
+          profile['role'] ?? 'user';
+
+      currentUsername =
+          profile['username'] ?? 'Guest';
+
+      // =========================
+      // SAVE TRIAL START
+      // =========================
+
+      if (profile['trial_start'] != null) {
+
+        trialStart = DateTime.parse(
+          profile['trial_start'],
+        );
+      }
+
+      // =========================
+      // CHECK AI ACCESS
+      // =========================
+
+      currentAiAllowed = false;
+
+currentAiChatCount =
+    profile['ai_chat_count'] ?? 0;
+
+    final lastReset =
+    profile['ai_last_reset'];
+
+if (lastReset != null) {
+
+  final resetDate =
+      DateTime.parse(lastReset);
+
+  final now = DateTime.now();
+
+  final isDifferentDay =
+      now.day != resetDate.day ||
+      now.month != resetDate.month ||
+      now.year != resetDate.year;
+
+  if (isDifferentDay) {
+
+    await supabase
+        .from('profiles')
+        .update({
+
+      'ai_chat_count': 0,
+
+      'ai_last_reset':
+          now.toIso8601String(),
+
+    }).eq('id', user.id);
+
+    currentAiChatCount = 0;
+  }
+}
+    
+      if (currentRole == 'pro' ||
+          currentRole == 'admin') {
+
+        currentAiAllowed = true;
+      }
 
       // =========================
       // CHECK APPROVED
@@ -67,22 +137,18 @@ class AuthService {
 
       if (approved != true) {
 
-        // FORCE LOGOUT
-
         await supabase.auth.signOut();
 
         return 'Account pending admin approval';
       }
 
       return null;
-    }
 
-    on AuthException catch (e) {
+    } on AuthException catch (e) {
 
       return e.message;
-    }
 
-    catch (e) {
+    } catch (e) {
 
       return e.toString();
     }
@@ -94,11 +160,13 @@ class AuthService {
 
   static Future<String?> register({
 
-    required String username,
+  required String username,
 
-    required String password,
+  required String password,
 
-  }) async {
+  required String phone,
+
+}) async {
 
     try {
 
@@ -107,10 +175,6 @@ class AuthService {
 
       final email =
           '$cleanUsername@app.com';
-
-      // =========================
-      // CREATE AUTH USER
-      // =========================
 
       final response =
           await supabase.auth.signUp(
@@ -128,10 +192,6 @@ class AuthService {
         return 'Register failed';
       }
 
-      // =========================
-      // INSERT PROFILE
-      // =========================
-
       await supabase
           .from('profiles')
           .insert({
@@ -140,26 +200,28 @@ class AuthService {
 
         'username': cleanUsername,
 
+        'phone': phone,
+
         'is_admin': false,
 
-        // IMPORTANT
+        'role': 'user',
+
+        'trial_start':
+            DateTime.now()
+                .toIso8601String(),
 
         'approved': false,
       });
 
-      // LOGOUT AFTER REGISTER
-
       await supabase.auth.signOut();
 
       return null;
-    }
 
-    on AuthException catch (e) {
+    } on AuthException catch (e) {
 
       return e.message;
-    }
 
-    catch (e) {
+    } catch (e) {
 
       return e.toString();
     }
@@ -169,8 +231,7 @@ class AuthService {
   // LOGOUT
   // =========================
 
-  static Future<void>
-      logout() async {
+  static Future<void> logout() async {
 
     await supabase.auth.signOut();
   }
@@ -179,8 +240,7 @@ class AuthService {
   // CHECK ADMIN
   // =========================
 
-  static Future<bool>
-      isAdmin() async {
+  static Future<bool> isAdmin() async {
 
     try {
 
@@ -194,20 +254,14 @@ class AuthService {
 
       final data =
           await supabase
-
               .from('profiles')
-
               .select()
-
               .eq('id', user.id)
-
               .single();
 
-      return data['is_admin'] ==
-          true;
-    }
+      return data['is_admin'] == true;
 
-    catch (e) {
+    } catch (e) {
 
       return false;
     }
@@ -219,7 +273,35 @@ class AuthService {
 
   static bool isLoggedIn() {
 
-    return supabase.auth.currentUser !=
-        null;
+    return supabase.auth.currentUser != null;
   }
+
+  // =========================
+  // CHECK USER TRIAL EXPIRED
+  // =========================
+
+  static bool isUserTrialExpired() {
+
+    if (currentRole != 'user') {
+
+      return false;
+    }
+
+    if (trialStart == null) {
+
+      return true;
+    }
+
+    final expiredDate =
+        trialStart!.add(
+      const Duration(days: 3),
+    );
+
+    return DateTime.now()
+        .isAfter(expiredDate);
+  }
+  static bool isAiLimitReached() {
+
+  return currentAiChatCount >= 30;
+}
 }

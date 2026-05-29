@@ -117,18 +117,18 @@ class _UserManagementPageState
 
   Future<void> changeRole({
 
-    required String userId,
+  required String userId,
 
-    required bool isAdmin,
+  required String role,
 
-  }) async {
+}) async {
 
     await SupabaseService
         .updateUserRole(
 
       userId: userId,
 
-      isAdmin: isAdmin,
+      role: role,
     );
 
     loadUsers();
@@ -266,840 +266,978 @@ class _UserManagementPageState
   // =====================================================
 
   @override
-  Widget build(BuildContext context) {
+Widget build(BuildContext context) {
 
-    final approvedCount =
-        users
-            .where(
-              (e) =>
-                  e['approved'] ==
-                  true,
-            )
-            .length;
+  final approvedCount =
+      users.where((e) => e['approved'] == true).length;
 
-    final pendingCount =
-        users
-            .where(
-              (e) =>
-                  e['approved'] !=
-                  true,
-            )
-            .length;
+  final pendingCount =
+      users.where((e) => e['approved'] != true).length;
 
-    final adminCount =
-        users
-            .where(
-              (e) =>
-                  e['is_admin'] ==
-                  true,
-            )
-            .length;
+  final adminCount =
+      users.where((e) => e['is_admin'] == true).length;
 
-    return Scaffold(
+  return Scaffold(
+    backgroundColor: const Color(0xff07111f),
 
-      backgroundColor:
-          const Color(
-        0xff07111f,
-      ),
+    body: isLoading
+        ? const Center(
+            child: CircularProgressIndicator(
+              color: Colors.cyanAccent,
+            ),
+          )
 
-      body:
+        : Stack(
+            children: [
 
-          isLoading
-
-              ? const Center(
-
-                  child:
-                      CircularProgressIndicator(
-                    color:
-                        Colors.cyanAccent,
+              Positioned(
+                top: -120,
+                right: -80,
+                child: Container(
+                  width: 300,
+                  height: 300,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.cyanAccent.withOpacity(0.08),
                   ),
-                )
+                ),
+              ),
 
-              : Stack(
+              Positioned(
+                bottom: -100,
+                left: -60,
+                child: Container(
+                  width: 250,
+                  height: 250,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.purpleAccent.withOpacity(0.08),
+                  ),
+                ),
+              ),
 
-                  children: [
+              SafeArea(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
 
-                    Positioned(
+                  child: Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
 
-                      top: -120,
+                    children: [
 
-                      right: -80,
-
-                      child: Container(
-
-                        width: 300,
-
-                        height: 300,
-
-                        decoration:
-                            BoxDecoration(
-
-                          shape:
-                              BoxShape.circle,
-
-                          color: Colors
-                              .cyanAccent
-                              .withOpacity(
-                            0.08,
-                          ),
+                      const Text(
+                        'User Management',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 34,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
 
-                    Positioned(
+                      const SizedBox(height: 8),
 
-                      bottom: -100,
-
-                      left: -60,
-
-                      child: Container(
-
-                        width: 250,
-
-                        height: 250,
-
-                        decoration:
-                            BoxDecoration(
-
-                          shape:
-                              BoxShape.circle,
-
-                          color: Colors
-                              .purpleAccent
-                              .withOpacity(
-                            0.08,
-                          ),
+                      Text(
+                        'Manage user access, roles, and approval status',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.6),
+                          fontSize: 15,
                         ),
                       ),
-                    ),
 
-                    SafeArea(
+                      const SizedBox(height: 30),
 
-                      child:
-                          SingleChildScrollView(
+                      // STATS
 
+                      Row(
+                        children: [
+
+                          Expanded(
+                            child: buildStatCard(
+                              title: 'Total Users',
+                              value: users.length.toString(),
+                              icon: Icons.people_alt_rounded,
+                              color: Colors.cyanAccent,
+                            ),
+                          ),
+
+                          const SizedBox(width: 18),
+
+                          Expanded(
+                            child: buildStatCard(
+                              title: 'Admins',
+                              value: adminCount.toString(),
+                              icon: Icons.admin_panel_settings_rounded,
+                              color: Colors.orangeAccent,
+                            ),
+                          ),
+
+                          const SizedBox(width: 18),
+
+                          Expanded(
+                            child: buildStatCard(
+                              title: 'Approved',
+                              value: approvedCount.toString(),
+                              icon: Icons.verified_rounded,
+                              color: Colors.greenAccent,
+                            ),
+                          ),
+
+                          const SizedBox(width: 18),
+
+                          Expanded(
+                            child: buildStatCard(
+                              title: 'Pending',
+                              value: pendingCount.toString(),
+                              icon: Icons.pending_actions_rounded,
+                              color: Colors.pinkAccent,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 28),
+
+                      // SEARCH
+
+                      Container(
                         padding:
-                            const EdgeInsets.all(
-                          24,
+                            const EdgeInsets.symmetric(
+                          horizontal: 18,
+                        ),
+
+                        decoration: BoxDecoration(
+                          borderRadius:
+                              BorderRadius.circular(24),
+
+                          color:
+                              Colors.white.withOpacity(0.05),
+
+                          border: Border.all(
+                            color:
+                                Colors.white.withOpacity(0.08),
+                          ),
+                        ),
+
+                        child: TextField(
+                          controller: searchController,
+
+                          style: const TextStyle(
+                            color: Colors.white,
+                          ),
+
+                          decoration:
+                              const InputDecoration(
+                            border: InputBorder.none,
+                            hintText:
+                                'Search username or role...',
+                            hintStyle:
+                                TextStyle(
+                              color: Colors.white54,
+                            ),
+                            icon: Icon(
+                              Icons.search_rounded,
+                              color: Colors.cyanAccent,
+                            ),
+                          ),
+
+                          onChanged: searchUser,
+                        ),
+                      ),
+
+                      const SizedBox(height: 28),
+
+                      // USER TABLE
+
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius:
+                              BorderRadius.circular(32),
+
+                          color:
+                              Colors.white.withOpacity(0.04),
+
+                          border: Border.all(
+                            color:
+                                Colors.white.withOpacity(0.08),
+                          ),
                         ),
 
                         child: Column(
-
-                          crossAxisAlignment:
-                              CrossAxisAlignment
-                                  .start,
-
                           children: [
 
-                            const Text(
-
-                              'User Management',
-
-                              style:
-                                  TextStyle(
-
-                                color:
-                                    Colors.white,
-
-                                fontSize: 34,
-
-                                fontWeight:
-                                    FontWeight.bold,
-                              ),
-                            ),
-
-                            const SizedBox(
-                              height: 8,
-                            ),
-
-                            Text(
-
-                              'Manage user access, roles, and approval status',
-
-                              style:
-                                  TextStyle(
-
-                                color: Colors
-                                    .white
-                                    .withOpacity(
-                                  0.6,
-                                ),
-
-                                fontSize: 15,
-                              ),
-                            ),
-
-                            const SizedBox(
-                              height: 30,
-                            ),
-
-                            // =================================================
-                            // STATS
-                            // =================================================
-
-                            Row(
-
-                              children: [
-
-                                Expanded(
-
-                                  child:
-                                      buildStatCard(
-
-                                    title:
-                                        'Total Users',
-
-                                    value:
-                                        users.length
-                                            .toString(),
-
-                                    icon:
-                                        Icons.people_alt_rounded,
-
-                                    color:
-                                        Colors.cyanAccent,
-                                  ),
-                                ),
-
-                                const SizedBox(
-                                  width: 18,
-                                ),
-
-                                Expanded(
-
-                                  child:
-                                      buildStatCard(
-
-                                    title:
-                                        'Admins',
-
-                                    value:
-                                        adminCount
-                                            .toString(),
-
-                                    icon:
-                                        Icons.admin_panel_settings_rounded,
-
-                                    color:
-                                        Colors.orangeAccent,
-                                  ),
-                                ),
-
-                                const SizedBox(
-                                  width: 18,
-                                ),
-
-                                Expanded(
-
-                                  child:
-                                      buildStatCard(
-
-                                    title:
-                                        'Approved',
-
-                                    value:
-                                        approvedCount
-                                            .toString(),
-
-                                    icon:
-                                        Icons.verified_rounded,
-
-                                    color:
-                                        Colors.greenAccent,
-                                  ),
-                                ),
-
-                                const SizedBox(
-                                  width: 18,
-                                ),
-
-                                Expanded(
-
-                                  child:
-                                      buildStatCard(
-
-                                    title:
-                                        'Pending',
-
-                                    value:
-                                        pendingCount
-                                            .toString(),
-
-                                    icon:
-                                        Icons.pending_actions_rounded,
-
-                                    color:
-                                        Colors.pinkAccent,
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(
-                              height: 28,
-                            ),
-
-                            // =================================================
-                            // SEARCH
-                            // =================================================
-
-                            ClipRRect(
-
-                              borderRadius:
-                                  BorderRadius.circular(
-                                24,
+                            Container(
+                              padding:
+                                  const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 20,
                               ),
 
-                              child:
-                                  BackdropFilter(
+                              child: const Row(
+                                children: [
 
-                                filter:
-                                    ImageFilter.blur(
-
-                                  sigmaX: 14,
-
-                                  sigmaY: 14,
-                                ),
-
-                                child:
-                                    Container(
-
-                                  padding:
-                                      const EdgeInsets.symmetric(
-                                    horizontal:
-                                        18,
-                                  ),
-
-                                  decoration:
-                                      BoxDecoration(
-
-                                    borderRadius:
-                                        BorderRadius.circular(
-                                      24,
-                                    ),
-
-                                    color: Colors
-                                        .white
-                                        .withOpacity(
-                                      0.05,
-                                    ),
-
-                                    border:
-                                        Border.all(
-
-                                      color: Colors
-                                          .white
-                                          .withOpacity(
-                                        0.08,
+                                  Expanded(
+                                    flex: 3,
+                                    child: Text(
+                                      'Users',
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontWeight:
+                                            FontWeight.bold,
                                       ),
                                     ),
                                   ),
 
-                                  child:
-                                      TextField(
-
-                                    controller:
-                                        searchController,
-
-                                    style:
-                                        const TextStyle(
-                                      color:
-                                          Colors.white,
-                                    ),
-
-                                    decoration:
-                                        const InputDecoration(
-
-                                      border:
-                                          InputBorder.none,
-
-                                      hintText:
-                                          'Search username or role...',
-
-                                      hintStyle:
-                                          TextStyle(
-
-                                        color:
-                                            Colors.white54,
-                                      ),
-
-                                      icon:
-                                          Icon(
-
-                                        Icons.search_rounded,
-
-                                        color:
-                                            Colors.cyanAccent,
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Role',
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontWeight:
+                                            FontWeight.bold,
                                       ),
                                     ),
-
-                                    onChanged:
-                                        searchUser,
                                   ),
-                                ),
+
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Status',
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontWeight:
+                                            FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+
+                                  Expanded(
+                                    flex: 3,
+                                    child: Text(
+                                      'Trial Period',
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontWeight:
+                                            FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Actions',
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontWeight:
+                                            FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
 
-                            const SizedBox(
-                              height: 28,
+                            Divider(
+                              color: Colors.white12,
+                              height: 1,
                             ),
 
-                            // =================================================
-                            // USER LIST
-                            // =================================================
+                            ...filteredUsers.map((user) {
 
-                            if (filteredUsers
-                                .isEmpty)
+                              return buildUserCard(
+                                user: user,
+                                isAdmin:
+                                    user['is_admin'] ?? false,
+                                approved:
+                                    user['approved'] ?? false,
+                                role:
+                                    (user['role'] ?? 'basic')
+                                        .toString()
+                                        .toLowerCase(),
+                              );
 
-                              Container(
-
-                                width:
-                                    double.infinity,
-
-                                padding:
-                                    const EdgeInsets.all(
-                                  40,
-                                ),
-
-                                decoration:
-                                    BoxDecoration(
-
-                                  borderRadius:
-                                      BorderRadius.circular(
-                                    28,
-                                  ),
-
-                                  color: Colors
-                                      .white
-                                      .withOpacity(
-                                    0.04,
-                                  ),
-                                ),
-
-                                child: const Center(
-
-                                  child: Text(
-
-                                    'No users found',
-
-                                    style:
-                                        TextStyle(
-
-                                      color:
-                                          Colors.white70,
-
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                ),
-                              )
-
-                            else
-
-                              Column(
-
-                                children:
-                                    filteredUsers.map(
-                                  (
-                                    user,
-                                  ) {
-
-                                    final bool
-                                        isAdmin =
-                                        user['is_admin'] ??
-                                            false;
-
-                                    final bool
-                                        approved =
-                                        user['approved'] ??
-                                            false;
-
-                                    return buildUserCard(
-
-                                      user:
-                                          user,
-
-                                      isAdmin:
-                                          isAdmin,
-
-                                      approved:
-                                          approved,
-                                    );
-                                  },
-                                ).toList(),
-                              ),
+                            }).toList(),
                           ],
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-    );
-  }
+              ),
+            ],
+          ),
+  );
+}
 
   // =====================================================
   // USER CARD
   // =====================================================
 
-  Widget buildUserCard({
+Widget buildUserCard({
 
-    required Map<String, dynamic>
-        user,
+  required Map<String, dynamic> user,
 
-    required bool isAdmin,
+  required bool isAdmin,
 
-    required bool approved,
+  required bool approved,
 
-  }) {
+  required String role,
 
-    return Container(
+}) {
 
-      margin:
-          const EdgeInsets.only(
-        bottom: 20,
+  final trialEnd =
+      user['trial_end'];
+
+  String trialDate =
+      'No Trial';
+
+  String trialStatus =
+      '';
+
+  Color trialColor =
+      Colors.orangeAccent;
+
+  if (trialEnd != null) {
+
+    final end =
+        DateTime.parse(
+      trialEnd.toString(),
+    );
+
+    final now =
+        DateTime.now();
+
+    final diff =
+        end.difference(now).inDays;
+
+    trialDate =
+        '${end.day.toString().padLeft(2, '0')} '
+        '${_monthName(end.month)} '
+        '${end.year}';
+
+    if (diff > 0) {
+
+      trialStatus =
+          '($diff days left)';
+
+      trialColor =
+          Colors.greenAccent;
+
+    } else {
+
+      trialStatus =
+          '(Expired)';
+
+      trialColor =
+          Colors.redAccent;
+    }
+  }
+
+  return Container(
+
+    padding:
+        const EdgeInsets.symmetric(
+      horizontal: 24,
+      vertical: 26,
+    ),
+
+    decoration:
+        BoxDecoration(
+
+      border: Border(
+
+        bottom: BorderSide(
+
+          color: Colors.white
+              .withOpacity(0.06),
+        ),
       ),
+    ),
 
-      child: ClipRRect(
+    child: Row(
 
-        borderRadius:
-            BorderRadius.circular(
-          28,
+      crossAxisAlignment:
+          CrossAxisAlignment.center,
+
+      children: [
+
+        // =========================================
+        // USER INFO
+        // =========================================
+
+        Expanded(
+
+          flex: 3,
+
+          child: Row(
+
+            children: [
+
+              Container(
+
+                width: 70,
+
+                height: 70,
+
+                decoration:
+                    BoxDecoration(
+
+                  shape:
+                      BoxShape.circle,
+
+                  gradient:
+                      LinearGradient(
+
+                    colors:
+
+                        isAdmin
+
+                            ? [
+
+                                Colors.orangeAccent,
+
+                                Colors.deepOrange,
+                              ]
+
+                            : [
+
+                                Colors.cyanAccent,
+
+                                Colors.blueAccent,
+                              ],
+                  ),
+                ),
+
+                child: const Icon(
+
+                  Icons.person,
+
+                  color:
+                      Colors.white,
+
+                  size: 34,
+                ),
+              ),
+
+              const SizedBox(
+                width: 18,
+              ),
+
+              Column(
+
+                crossAxisAlignment:
+                    CrossAxisAlignment.start,
+
+                children: [
+
+                  Text(
+
+                    user['username'] ??
+                        '-',
+
+                    style:
+                        const TextStyle(
+
+                      color:
+                          Colors.white,
+
+                      fontSize: 26,
+
+                      fontWeight:
+                          FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(
+                    height: 8,
+                  ),
+
+                  Text(
+
+                    user['phone'] ??
+                        'no.hp',
+
+                    style:
+                        TextStyle(
+
+                      color: Colors.white
+                          .withOpacity(0.65),
+
+                      fontSize: 15,
+                    ),
+                  ),
+
+                  const SizedBox(
+                    height: 8,
+                  ),
+
+                  Text(
+
+                    user['email'] ??
+                        'No Email',
+
+                    style:
+                        TextStyle(
+
+                      color: Colors.white
+                          .withOpacity(0.65),
+
+                      fontSize: 15,
+                    ),
+                  ),
+
+                  const SizedBox(
+                    height: 8,
+                  ),
+
+                  Text(
+
+                    'ID: ${user['id'].toString().substring(0, 8)}...',
+
+                    style:
+                        TextStyle(
+
+                      color: Colors.white
+                          .withOpacity(0.35),
+
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
 
-        child: BackdropFilter(
+        // =========================================
+        // ROLE
+        // =========================================
 
-          filter:
-              ImageFilter.blur(
+        Expanded(
 
-            sigmaX: 14,
-
-            sigmaY: 14,
-          ),
+          flex: 2,
 
           child: Container(
 
             padding:
-                const EdgeInsets.all(
-              24,
+                const EdgeInsets.symmetric(
+              horizontal: 18,
+              vertical: 4,
             ),
 
             decoration:
                 BoxDecoration(
 
               borderRadius:
-                  BorderRadius.circular(
-                28,
-              ),
+                  BorderRadius.circular(18),
 
-              color: Colors
-                  .white
-                  .withOpacity(
-                0.05,
-              ),
+              border: Border.all(
 
-              border:
-                  Border.all(
+                color:
 
-                color: Colors
-                    .white
-                    .withOpacity(
-                  0.08,
-                ),
+                    role == 'admin'
+
+                        ? Colors.orangeAccent
+
+                        : role == 'pro'
+
+                            ? Colors.purpleAccent
+
+                            : Colors.blueAccent,
               ),
             ),
 
-            child: Column(
+            child: DropdownButton<String>(
 
-              children: [
+              value: role,
 
-                Row(
+              isExpanded: true,
 
-                  children: [
+              dropdownColor:
+                  const Color(0xff10192d),
 
-                    Container(
+              style:
+                  const TextStyle(
 
-                      width: 70,
+                color:
+                    Colors.white,
 
-                      height: 70,
+                fontWeight:
+                    FontWeight.bold,
 
-                      decoration:
-                          BoxDecoration(
+                fontSize: 18,
+              ),
 
-                        shape:
-                            BoxShape.circle,
+              underline:
+                  const SizedBox(),
 
-                        gradient:
-                            LinearGradient(
+              items: const [
 
-                          colors:
+  DropdownMenuItem(
+    value: 'user',
+    child: Text('USER'),
+  ),
 
-                              isAdmin
+  DropdownMenuItem(
+    value: 'basic',
+    child: Text('BASIC'),
+  ),
 
-                                  ? [
+  DropdownMenuItem(
+    value: 'pro',
+    child: Text('PRO'),
+  ),
 
-                                      Colors.orangeAccent,
+  DropdownMenuItem(
+    value: 'admin',
+    child: Text('ADMIN'),
+  ),
+],
 
-                                      Colors.deepOrange,
-                                    ]
+onChanged: (value) async {
 
-                                  : [
+  if (value == null) return;
 
-                                      Colors.cyanAccent,
+  // update role
+    await SupabaseService
+        .updateUserRoleAdvanced(
 
-                                      Colors.blueAccent,
-                                    ],
-                        ),
-                      ),
+      userId: user['id'],
 
-                      child: Icon(
+      role: value,
+    );
 
-                        isAdmin
+    // jika BASIC atau PRO
+    // otomatis tambah 30 hari
 
-                            ? Icons.admin_panel_settings_rounded
+    if (
+        value == 'basic' ||
+        value == 'pro'
+    ) {
 
-                            : Icons.person_rounded,
+      final now =
+          DateTime.now();
 
-                        color:
-                            Colors.white,
+      final end =
+          now.add(
+        const Duration(
+          days: 30,
+        ),
+      );
 
-                        size: 34,
-                      ),
-                    ),
+      await SupabaseService
+          .updateTrial(
 
-                    const SizedBox(
-                      width: 18,
-                    ),
+        userId: user['id'],
 
-                    Expanded(
+        startDate: now,
 
-                      child:
-                          Column(
+        endDate: end,
+      );
+    }
 
-                        crossAxisAlignment:
-                            CrossAxisAlignment
-                                .start,
+    // reload
+    loadUsers();
+},
+),
+),
+),
 
-                        children: [
+        // =========================================
+        // STATUS
+        // =========================================
 
-                          Text(
+        Expanded(
 
-                            user['username'] ??
-                                '-',
+          flex: 2,
 
-                            style:
-                                const TextStyle(
+          child: Column(
 
-                              color:
-                                  Colors.white,
+            children: [
 
-                              fontSize: 22,
+              buildBadge(
 
-                              fontWeight:
-                                  FontWeight.bold,
-                            ),
-                          ),
+                text:
 
-                          const SizedBox(
-                            height: 6,
-                          ),
+                    approved
 
-                          Text(
+                        ? 'APPROVED'
 
-                            user['email'] ??
-                                'No Email',
+                        : 'PENDING',
 
-                            style:
-                                TextStyle(
+                color:
 
-                              color: Colors
-                                  .white
-                                  .withOpacity(
-                                0.6,
-                              ),
+                    approved
 
-                              fontSize:
-                                  14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                        ? Colors.greenAccent
 
-                    buildBadge(
+                        : Colors.orangeAccent,
+              ),
 
-                      text:
+              const SizedBox(
+                height: 14,
+              ),
 
-                          approved
+              Switch(
 
-                              ? 'APPROVED'
+                value:
+                    approved,
 
-                              : 'PENDING',
+                activeColor:
+                    Colors.greenAccent,
 
-                      color:
+                onChanged:
+                    (value) async {
 
-                          approved
+                  await approveUser(
 
-                              ? Colors.greenAccent
+                    userId:
+                        user['id'],
 
-                              : Colors.orangeAccent,
-                    ),
-                  ],
-                ),
+                    approved:
+                        value,
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
 
-                const SizedBox(
-                  height: 24,
-                ),
+        // =========================================
+        // TRIAL
+        // =========================================
 
-                Row(
+        Expanded(
 
-                  children: [
+          flex: 3,
 
-                    Expanded(
+          child: Column(
 
-                      child:
-                          buildActionCard(
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
 
-                        title:
-                            'Admin Access',
+            children: [
 
-                        subtitle:
+              Row(
 
-                            isAdmin
+                children: [
 
-                                ? 'Administrator'
+                  const Icon(
 
-                                : 'Standard User',
+                    Icons.calendar_month,
 
-                        switchValue:
-                            isAdmin,
+                    color:
+                        Colors.white70,
 
-                        switchColor:
-                            Colors.cyanAccent,
+                    size: 18,
+                  ),
 
-                        onChanged:
-                            (value) {
+                  const SizedBox(
+                    width: 8,
+                  ),
 
-                          changeRole(
+                  Text(
 
-                            userId:
-                                user['id'],
-
-                            isAdmin:
-                                value,
-                          );
-                        },
-                      ),
-                    ),
-
-                    const SizedBox(
-                      width: 18,
-                    ),
-
-                    Expanded(
-
-                      child:
-                          buildActionCard(
-
-                        title:
-                            'Approval',
-
-                        subtitle:
-
-                            approved
-
-                                ? 'Approved'
-
-                                : 'Pending',
-
-                        switchValue:
-                            approved,
-
-                        switchColor:
-                            Colors.greenAccent,
-
-                        onChanged:
-                            (value) {
-
-                          approveUser(
-
-                            userId:
-                                user['id'],
-
-                            approved:
-                                value,
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(
-                  height: 18,
-                ),
-
-                SizedBox(
-
-                  width:
-                      double.infinity,
-
-                  height: 54,
-
-                  child:
-                      ElevatedButton.icon(
+                    'Active until',
 
                     style:
-                        ElevatedButton.styleFrom(
+                        TextStyle(
 
-                      backgroundColor:
-                          Colors.redAccent,
-
-                      shape:
-                          RoundedRectangleBorder(
-
-                        borderRadius:
-                            BorderRadius.circular(
-                          18,
-                        ),
-                      ),
+                      color: Colors
+                          .white
+                          .withOpacity(0.6),
                     ),
+                  ),
+                ],
+              ),
 
-                    onPressed: () {
+              const SizedBox(
+                height: 10,
+              ),
 
-                      deleteUser(
+              Text(
 
-                        userId:
-                            user['id'],
-                      );
-                    },
+                trialDate,
 
-                    icon:
-                        const Icon(
-                      Icons.delete_rounded,
-                    ),
+                style:
+                    TextStyle(
 
-                    label:
-                        const Text(
+                  color:
+                      trialColor,
 
-                      'Delete User',
+                  fontSize: 24,
 
-                      style: TextStyle(
+                  fontWeight:
+                      FontWeight.bold,
+                ),
+              ),
 
-                        fontWeight:
-                            FontWeight.bold,
+              const SizedBox(
+                height: 8,
+              ),
 
-                        fontSize: 16,
-                      ),
+              Text(
+
+                trialStatus,
+
+                style:
+                    TextStyle(
+
+                  color:
+                      trialColor,
+
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // =========================================
+        // ACTIONS
+        // =========================================
+
+        Expanded(
+
+          flex: 2,
+
+          child: Column(
+
+            children: [
+
+              ElevatedButton.icon(
+
+                style:
+                    ElevatedButton.styleFrom(
+
+                  backgroundColor:
+                      Colors.deepPurple,
+
+                  minimumSize:
+                      const Size(
+                    160,
+                    58,
+                  ),
+
+                  shape:
+                      RoundedRectangleBorder(
+
+                    borderRadius:
+                        BorderRadius.circular(
+                      18,
                     ),
                   ),
                 ),
-              ],
-            ),
+
+                onPressed: () async {
+
+                  await SupabaseService
+                      .giveTrial30Days(
+
+                    userId:
+                        user['id'],
+                  );
+
+                  loadUsers();
+                },
+
+                icon: const Icon(
+                  Icons.workspace_premium,
+                ),
+
+                label: const Text(
+                  '30 Days\nTrial',
+                ),
+              ),
+
+              const SizedBox(
+                height: 16,
+              ),
+
+              ElevatedButton.icon(
+
+                style:
+                    ElevatedButton.styleFrom(
+
+                  backgroundColor:
+                      Colors.transparent,
+
+                  side:
+                      const BorderSide(
+                    color:
+                        Colors.redAccent,
+                  ),
+
+                  minimumSize:
+                      const Size(
+                    160,
+                    54,
+                  ),
+
+                  shape:
+                      RoundedRectangleBorder(
+
+                    borderRadius:
+                        BorderRadius.circular(
+                      18,
+                    ),
+                  ),
+                ),
+
+                onPressed: () {
+
+                  deleteUser(
+                    userId:
+                        user['id'],
+                  );
+                },
+
+                icon: const Icon(
+                  Icons.delete,
+                  color:
+                      Colors.redAccent,
+                ),
+
+                label: const Text(
+
+                  'Delete',
+
+                  style: TextStyle(
+                    color:
+                        Colors.redAccent,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-      ),
-    );
-  }
+      ],
+    ),
+  );
+}
+
+String _monthName(int month) {
+
+  const months = [
+
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+
+  return months[month - 1];
+}
 
   // =====================================================
   // ACTION CARD
